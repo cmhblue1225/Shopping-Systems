@@ -1,0 +1,123 @@
+<!-- 창고등록 폼 템플릿 -->
+<div class="title">창고 등록</div>
+
+<form id="warehouseForm" onsubmit="return false;">
+  <!-- 기본 정보 테이블 -->
+  <table>
+    <tr>
+      <th>등록일자</th>
+      <td><input type="date" id="regDate" value="2025-06-27"></td>
+      <th>등록번호</th>
+      <td><input type="text" id="regNo" value="W001"></td>
+      <th>등록자</th>
+      <td><input type="text" id="regUser" value="관리자"></td>
+    </tr>
+  </table>
+
+  <!-- 창고 정보 테이블 -->
+  <table id="warehouseTable">
+    <tr>
+      <th>순번</th>
+      <th>창고 코드</th>
+      <th>창고 이름</th>
+      <th>창고 유형</th>
+      <th>주소</th>
+      <th>상세 주소</th>
+      <th>우편번호</th>
+      <th>지역</th>
+      <th>담당자명</th>
+      <th>담당자 연락처</th>
+      <th>이메일</th>
+    </tr>
+    
+    <!-- 기본 창고 데이터 -->
+    <script>
+      const defaultWarehouses = [
+        ["WH001", "본사 창고", "일반창고", "서울시 강남구 테헤란로 123", "지하 1층", "06234", "서울", "김창고", "010-1234-5678", "warehouse1@company.com"],
+        ["WH002", "배송센터", "물류창고", "경기도 고양시 일산동구 중앙로 456", "1층", "10380", "경기", "이물류", "010-2345-6789", "warehouse2@company.com"],
+        ["WH003", "냉장창고", "냉장창고", "인천시 남동구 논현로 789", "2층", "21556", "인천", "박냉장", "010-3456-7890", "warehouse3@company.com"]
+      ];
+
+      for(let i=0;i<3;i++) {
+        document.write('<tr>');
+        document.write(`<td>${i+1}</td>`);
+        document.write(`<td><input type="text" id="whCode${i}" value="${defaultWarehouses[i][0]}"></td>`);
+        document.write(`<td><input type="text" id="whName${i}" value="${defaultWarehouses[i][1]}"></td>`);
+        document.write(`<td><input type="text" id="whType${i}" value="${defaultWarehouses[i][2]}"></td>`);
+        document.write(`<td><input type="text" id="whAddr${i}" value="${defaultWarehouses[i][3]}"></td>`);
+        document.write(`<td><input type="text" id="whAddrDetail${i}" value="${defaultWarehouses[i][4]}"></td>`);
+        document.write(`<td><input type="text" id="whZip${i}" value="${defaultWarehouses[i][5]}"></td>`);
+        document.write(`<td><input type="text" id="whRegion${i}" value="${defaultWarehouses[i][6]}"></td>`);
+        document.write(`<td><input type="text" id="whManager${i}" value="${defaultWarehouses[i][7]}"></td>`);
+        document.write(`<td><input type="text" id="whPhone${i}" value="${defaultWarehouses[i][8]}"></td>`);
+        document.write(`<td><input type="email" id="whEmail${i}" value="${defaultWarehouses[i][9]}"></td>`);
+        document.write('</tr>');
+      }
+    </script>
+    
+    <!-- 추가 빈 창고 입력 행들 -->
+    <tr><td>4</td><td><input type="text" id="whCode3"></td><td><input type="text" id="whName3"></td><td><input type="text" id="whType3"></td><td><input type="text" id="whAddr3"></td><td><input type="text" id="whAddrDetail3"></td><td><input type="text" id="whZip3"></td><td><input type="text" id="whRegion3"></td><td><input type="text" id="whManager3"></td><td><input type="text" id="whPhone3"></td><td><input type="email" id="whEmail3"></td></tr>
+    <tr><td>5</td><td><input type="text" id="whCode4"></td><td><input type="text" id="whName4"></td><td><input type="text" id="whType4"></td><td><input type="text" id="whAddr4"></td><td><input type="text" id="whAddrDetail4"></td><td><input type="text" id="whZip4"></td><td><input type="text" id="whRegion4"></td><td><input type="text" id="whManager4"></td><td><input type="text" id="whPhone4"></td><td><input type="email" id="whEmail4"></td></tr>
+    <tr><td>6</td><td><input type="text" id="whCode5"></td><td><input type="text" id="whName5"></td><td><input type="text" id="whType5"></td><td><input type="text" id="whAddr5"></td><td><input type="text" id="whAddrDetail5"></td><td><input type="text" id="whZip5"></td><td><input type="text" id="whRegion5"></td><td><input type="text" id="whManager5"></td><td><input type="text" id="whPhone5"></td><td><input type="email" id="whEmail5"></td></tr>
+    <tr><td>7</td><td><input type="text" id="whCode6"></td><td><input type="text" id="whName6"></td><td><input type="text" id="whType6"></td><td><input type="text" id="whAddr6"></td><td><input type="text" id="whAddrDetail6"></td><td><input type="text" id="whZip6"></td><td><input type="text" id="whRegion6"></td><td><input type="text" id="whManager6"></td><td><input type="text" id="whPhone6"></td><td><input type="email" id="whEmail6"></td></tr>
+    <tr><td>8</td><td><input type="text" id="whCode7"></td><td><input type="text" id="whName7"></td><td><input type="text" id="whType7"></td><td><input type="text" id="whAddr7"></td><td><input type="text" id="whAddrDetail7"></td><td><input type="text" id="whZip7"></td><td><input type="text" id="whRegion7"></td><td><input type="text" id="whManager7"></td><td><input type="text" id="whPhone7"></td><td><input type="email" id="whEmail7"></td></tr>
+  </table>
+
+  <!-- 비고 테이블 -->
+  <table>
+    <tr>
+      <th>비고</th>
+      <td colspan="10">
+        <textarea id="remark" rows="3" style="width: 100%; resize: vertical;">창고 등록 시 주의사항 및 특이사항을 입력하세요.</textarea>
+      </td>
+    </tr>
+  </table>
+
+  <!-- 등록 담당자 정보 테이블 -->
+  <table>
+    <tr>
+      <th>등록 담당자</th>
+      <td><input type="text" id="regManager" value="창고관리자"></td>
+      <th>등록 담당자 연락처</th>
+      <td><input type="text" id="regContact" value="010-1111-2222"></td>
+      <th>등록 담당자 이메일</th>
+      <td><input type="email" id="regEmail" value="warehouse.admin@company.com"></td>
+    </tr>
+  </table>
+
+  <!-- 서명 테이블 -->
+  <table>
+    <tr>
+      <th>등록 요청자 서명</th>
+      <td class="signature">
+        <div class="signature-pad-wrap">
+          <div id="signature-request" class="signature-pad"></div>
+          <button type="button" class="clear-signature" id="clear-signature-request">지우기</button>
+        </div>
+      </td>
+      <th>등록 검토자 서명</th>
+      <td class="signature">
+        <div class="signature-pad-wrap">
+          <div id="signature-review" class="signature-pad"></div>
+          <button type="button" class="clear-signature" id="clear-signature-review">지우기</button>
+        </div>
+      </td>
+      <th>등록 승인자 서명</th>
+      <td class="signature">
+        <div class="signature-pad-wrap">
+          <div id="signature-approve" class="signature-pad"></div>
+          <button type="button" class="clear-signature" id="clear-signature-approve">지우기</button>
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <br>
+
+  <!-- 액션 버튼들 -->
+  <button type="button" onclick="downloadExcel()">엑셀로 출력</button>
+  <button type="button" onclick="printDocument()">인쇄하기</button>
+  <button type="button" onclick="showSaveDialog()">💾 저장</button>
+  <button type="button" onclick="showLoadDialog()">📂 불러오기</button>
+  <button type="button" onclick="registerWarehouse()" style="background-color: #4CAF50; color: white; font-weight: bold;">🏢 등록</button>
+</form>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>회사원등록 관리 시스템</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <style>
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .system-title {
+      color: white;
+      font-size: 48px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .system-subtitle {
+      color: rgba(255,255,255,0.9);
+      font-size: 18px;
+      text-align: center;
+      margin-bottom: 50px;
+    }
+    
+    .button-container {
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+    
+    .main-button {
+      background: white;
+      color: #333;
+      border: none;
+      padding: 25px 40px;
+      font-size: 20px;
+      font-weight: bold;
+      border-radius: 15px;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+      min-width: 200px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .main-button:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+      background: #f8f9fa;
+    }
+    
+    .main-button:active {
+      transform: translateY(-2px);
+    }
+    
+    .register-btn {
+      background: linear-gradient(45deg, #28a745, #20c997);
+      color: white;
+    }
+    
+    .search-btn {
+      background: linear-gradient(45deg, #007bff, #6610f2);
+      color: white;
+    }
+    
+    .dummy-data-btn {
+      background: linear-gradient(45deg, #ffc107, #fd7e14);
+      color: white;
+      font-size: 16px;
+      padding: 15px 25px;
+      min-width: auto;
+    }
+    
+    .icon {
+      font-size: 24px;
+    }
+    
+    .stats-container {
+      background: rgba(255,255,255,0.1);
+      border-radius: 15px;
+      padding: 30px;
+      margin-top: 20px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .stats-title {
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .stats-info {
+      color: rgba(255,255,255,0.9);
+      text-align: center;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    
+    .stats-number {
+      color: #ffc107;
+      font-weight: bold;
+      font-size: 24px;
+    }
+    
+    @media (max-width: 768px) {
+      .system-title {
+        font-size: 36px;
+      }
+      
+      .button-container {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .main-button {
+        width: 100%;
+        max-width: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <h1 class="system-title">회사원등록 관리 시스템</h1>
+    <p class="system-subtitle">효율적인 회사원 정보 등록 및 관리를 위한 통합 시스템</p>
+    
+    <div class="button-container">
+      <a href="register.html" class="main-button register-btn">
+        <span class="icon">👥</span>
+        회사원 등록
+      </a>
+      <a href="search.html" class="main-button search-btn">
+        <span class="icon">🔍</span>
+        회사원 조회
+      </a>
+    </div>
+    
+    <button class="main-button dummy-data-btn" onclick="generateDummyData()">
+      <span class="icon">🎲</span>
+      더미 데이터 생성
+    </button>
+    
+    <div class="stats-container">
+      <div class="stats-title">📊 시스템 현황</div>
+      <div class="stats-info">
+        저장된 회사원 데이터: <span class="stats-number" id="totalCount">0</span>건<br>
+        오늘 등록된 데이터: <span class="stats-number" id="todayCount">0</span>건
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 페이지 로드 시 통계 정보 업데이트
+    document.addEventListener('DOMContentLoaded', function() {
+      updateStats();
+    });
+
+    function updateStats() {
+      const savedDataList = JSON.parse(localStorage.getItem('회사원등록_저장목록') || '{}');
+      const totalCount = Object.keys(savedDataList).length;
+      
+      const today = new Date().toISOString().split('T')[0];
+      let todayCount = 0;
+      
+      Object.values(savedDataList).forEach(data => {
+        if (data.savedAt && data.savedAt.split('T')[0] === today) {
+          todayCount++;
+        }
+      });
+      
+      document.getElementById('totalCount').textContent = totalCount;
+      document.getElementById('todayCount').textContent = todayCount;
+    }
+
+    function generateDummyData() {
+      if (confirm('대량의 더미 데이터를 생성하시겠습니까? (기존 데이터와 함께 저장됩니다)')) {
+        const savedDataList = JSON.parse(localStorage.getItem('회사원등록_저장목록') || '{}');
+        
+        const departments = ['개발팀', '마케팅팀', '인사팀', '재무팀', '영업팀', '기획팀', '운영팀', '품질관리팀'];
+        const positions = ['팀장', '과장', '대리', '주임', '사원', '차장', '부장'];
+        const grades = ['A급', 'B급', 'C급', 'D급', 'S급'];
+        const names = ['김철수', '이영희', '박민수', '최지원', '정수현', '강민정', '윤호준', '임지현', '송민아', '장현우', '조은별', '한상민', '오세영', '신미래', '배준호', '전다영', '노성현', '권지영', '고민수', '서예린'];
+        
+        for (let i = 1; i <= 30; i++) {
+          const regDate = new Date();
+          regDate.setDate(regDate.getDate() - Math.floor(Math.random() * 90));
+          
+          const saveName = `더미_회사원등록_${String(i).padStart(3, '0')}`;
+          
+          const formData = {
+            regDate: regDate.toISOString().split('T')[0],
+            regNo: `EMP${String(1000 + i).padStart(4, '0')}`,
+            regUser: `인사담당자${(i % 3) + 1}`,
+            employees: [],
+            regManager: `김인사${(i % 2) + 1}`,
+            regContact: `010-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`,
+            regEmail: `hr${i}@company.co.kr`,
+            remark: `${regDate.getMonth() + 1}월 회사원 등록 - 신규 입사자 포함`,
+            signatures: {},
+            savedAt: new Date().toISOString()
+          };
+
+          // 회사원 데이터 생성 (1-5명)
+          const empCount = Math.floor(Math.random() * 5) + 1;
+          for (let j = 0; j < empCount; j++) {
+            const hireDate = new Date(regDate);
+            hireDate.setDate(hireDate.getDate() - Math.floor(Math.random() * 30));
+            
+            const emp = {
+              empNo: `EMP${String(1000 + i * 10 + j).padStart(4, '0')}`,
+              empName: names[Math.floor(Math.random() * names.length)],
+              empDept: departments[Math.floor(Math.random() * departments.length)],
+              empPosition: positions[Math.floor(Math.random() * positions.length)],
+              empHireDate: hireDate.toISOString().split('T')[0],
+              empPhone: `010-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`,
+              empEmail: `emp${i}${j}@company.co.kr`,
+              empAddr: `서울시 ${['강남구', '서초구', '중구', '종로구', '마포구'][Math.floor(Math.random() * 5)]} ${['테헤란로', '강남대로', '세종대로', '종로', '마포대로'][Math.floor(Math.random() * 5)]} ${Math.floor(Math.random() * 999) + 1}`,
+              empAddrDetail: `${['현대빌딩', '삼성타워', '엘지빌딩', '한화센터', '롯데타워'][Math.floor(Math.random() * 5)]} ${Math.floor(Math.random() * 20) + 1}층`,
+              empZip: String(Math.floor(Math.random() * 90000) + 10000),
+              empGrade: grades[Math.floor(Math.random() * grades.length)]
+            };
+            
+            formData.employees.push(emp);
+          }
+
+          savedDataList[saveName] = formData;
+        }
+
+        localStorage.setItem('회사원등록_저장목록', JSON.stringify(savedDataList));
+        alert('30개의 더미 데이터가 생성되었습니다!');
+        updateStats();
+      }
+    }
+  </script>
+</body>
+</html>

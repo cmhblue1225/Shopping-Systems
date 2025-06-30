@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>입고요청서 관리 시스템</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <style>
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .system-title {
+      color: white;
+      font-size: 48px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .system-subtitle {
+      color: rgba(255,255,255,0.9);
+      font-size: 18px;
+      text-align: center;
+      margin-bottom: 50px;
+    }
+    
+    .button-container {
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+    
+    .main-button {
+      background: white;
+      color: #333;
+      border: none;
+      padding: 25px 40px;
+      font-size: 20px;
+      font-weight: bold;
+      border-radius: 15px;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+      min-width: 200px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .main-button:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+      background: #f8f9fa;
+    }
+    
+    .main-button:active {
+      transform: translateY(-2px);
+    }
+    
+    .register-btn {
+      background: linear-gradient(45deg, #28a745, #20c997);
+      color: white;
+    }
+    
+    .search-btn {
+      background: linear-gradient(45deg, #007bff, #6610f2);
+      color: white;
+    }
+    
+    .dummy-data-btn {
+      background: linear-gradient(45deg, #ffc107, #fd7e14);
+      color: white;
+      font-size: 16px;
+      padding: 15px 25px;
+      min-width: auto;
+    }
+    
+    .icon {
+      font-size: 24px;
+    }
+    
+    .stats-container {
+      background: rgba(255,255,255,0.1);
+      border-radius: 15px;
+      padding: 30px;
+      margin-top: 20px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .stats-title {
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .stats-info {
+      color: rgba(255,255,255,0.9);
+      text-align: center;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    
+    .stats-number {
+      color: #ffc107;
+      font-weight: bold;
+      font-size: 24px;
+    }
+    
+    @media (max-width: 768px) {
+      .system-title {
+        font-size: 36px;
+      }
+      
+      .button-container {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .main-button {
+        width: 100%;
+        max-width: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <h1 class="system-title">입고요청서 관리 시스템</h1>
+    <p class="system-subtitle">효율적인 입고요청서 작성 및 관리를 위한 통합 시스템</p>
+    
+    <div class="button-container">
+      <a href="register.html" class="main-button register-btn">
+        <span class="icon">📝</span>
+        입고요청서 등록
+      </a>
+      <a href="search.html" class="main-button search-btn">
+        <span class="icon">🔍</span>
+        입고요청서 조회
+      </a>
+    </div>
+    
+    <button class="main-button dummy-data-btn" onclick="generateDummyData()">
+      <span class="icon">🎲</span>
+      더미 데이터 생성
+    </button>
+    
+    <div class="stats-container">
+      <div class="stats-title">📊 시스템 현황</div>
+      <div class="stats-info">
+        저장된 입고요청서: <span class="stats-number" id="totalCount">0</span>건<br>
+        오늘 등록된 요청서: <span class="stats-number" id="todayCount">0</span>건
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 페이지 로드 시 통계 정보 업데이트
+    document.addEventListener('DOMContentLoaded', function() {
+      updateStats();
+    });
+
+    function updateStats() {
+      const savedDataList = JSON.parse(localStorage.getItem('입고요청서_저장목록') || '{}');
+      const totalCount = Object.keys(savedDataList).length;
+      
+      const today = new Date().toISOString().split('T')[0];
+      let todayCount = 0;
+      
+      Object.values(savedDataList).forEach(data => {
+        if (data.savedAt && data.savedAt.split('T')[0] === today) {
+          todayCount++;
+        }
+      });
+      
+      document.getElementById('totalCount').textContent = totalCount;
+      document.getElementById('todayCount').textContent = todayCount;
+    }
+
+    function generateDummyData() {
+      if (confirm('대량의 더미 데이터를 생성하시겠습니까? (기존 데이터와 함께 저장됩니다)')) {
+        const dummyData = [];
+        const companies = ['(주)엔케이', '(주)스마트솔루션', '(주)테크노베이션', '(주)글로벌파트너', '(주)프리미엄'];
+        const categories = ['문구/사무용품', 'IT/전자제품', '생활용품', '의료용품', '산업자재'];
+        const warehouses = ['본사 창고', '부산 창고', '대구 창고', '인천 창고', '광주 창고'];
+        const items = [
+          ['A4 복사용지', '80g, 500매', '박스', 2000, 5000],
+          ['볼펜', '흑색 0.7mm', '자루', 500, 100],
+          ['클리어파일', 'A4 투명', '개', 300, 50],
+          ['박스테이프', '48mm x 40m', '롤', 2500, 20],
+          ['스테이플러', '중형 26/6', '개', 8000, 10],
+          ['USB 메모리', '32GB', '개', 15000, 20],
+          ['마우스패드', '고무재질', '개', 3000, 30],
+          ['형광펜', '노란색', '개', 800, 50],
+          ['포스트잇', '3x3 노란색', '패드', 1200, 100],
+          ['바인더', 'A4 3공', '개', 2500, 25]
+        ];
+
+        const savedDataList = JSON.parse(localStorage.getItem('입고요청서_저장목록') || '{}');
+        
+        for (let i = 1; i <= 50; i++) {
+          const reqDate = new Date();
+          reqDate.setDate(reqDate.getDate() - Math.floor(Math.random() * 30));
+          
+          const inDate = new Date(reqDate);
+          inDate.setDate(inDate.getDate() + Math.floor(Math.random() * 14) + 1);
+          
+          const saveName = `더미_입고요청서_${String(i).padStart(3, '0')}`;
+          
+          const formData = {
+            reqDate: reqDate.toISOString().split('T')[0],
+            reqNo: String(1000 + i),
+            reqUser: `담당자${i % 10 + 1}`,
+            inDate: inDate.toISOString().split('T')[0],
+            refDept: [`구매팀`, `관리팀`, `영업팀`].slice(0, Math.floor(Math.random() * 3) + 1),
+            items: [],
+            manager: `김담당${i % 5 + 1}`,
+            contact: `010-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`,
+            email: `manager${i}@company.co.kr`,
+            remark: `${reqDate.getMonth() + 1}월 입고요청서 - 납기일 준수 요망`,
+            signatures: {},
+            savedAt: new Date().toISOString()
+          };
+
+          // 품목 데이터 생성 (3-7개 품목)
+          const itemCount = Math.floor(Math.random() * 5) + 3;
+          for (let j = 0; j < 10; j++) {
+            if (j < itemCount) {
+              const item = items[Math.floor(Math.random() * items.length)];
+              const qty = Math.floor(Math.random() * 100) + 1;
+              const price = item[4] + Math.floor(Math.random() * item[4] * 0.2) - Math.floor(item[4] * 0.1);
+              formData.items.push({
+                item: item[0],
+                spec: item[1],
+                unit: item[2],
+                qty: qty,
+                price: price,
+                amount: qty * price,
+                vendor: companies[Math.floor(Math.random() * companies.length)],
+                cat: categories[Math.floor(Math.random() * categories.length)],
+                wh: warehouses[Math.floor(Math.random() * warehouses.length)],
+                note: Math.random() > 0.7 ? `품질검사 필요` : ''
+              });
+            } else {
+              formData.items.push({
+                item: '', spec: '', unit: '', qty: '', price: '', amount: '',
+                vendor: '', cat: '', wh: '', note: ''
+              });
+            }
+          }
+
+          savedDataList[saveName] = formData;
+        }
+
+        localStorage.setItem('입고요청서_저장목록', JSON.stringify(savedDataList));
+        alert('50개의 더미 데이터가 생성되었습니다!');
+        updateStats();
+      }
+    }
+  </script>
+</body>
+</html>

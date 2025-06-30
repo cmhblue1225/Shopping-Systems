@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>신규상품등록 및 엑셀 출력</title>
+  
+  <!-- 로컬 라이브러리 -->
+  <!-- jQuery -->
+  <script src="assets/js/libs/jquery-3.6.0.min.js"></script>
+  <!-- jSignature for signature capture -->
+  <script src="assets/js/libs/jSignature.min.js"></script>
+  <!-- ExcelJS -->
+  <script src="assets/js/libs/exceljs.min.js"></script>
+  <!-- FileSaver.js for saving files -->
+  <script src="assets/js/libs/FileSaver.min.js"></script>
+  
+  <!-- 로컬 스타일시트 -->
+  <link rel="stylesheet" href="assets/css/styles.css">
+  
+  <!-- 샘플 입력 스타일 -->
+  <style>
+    .sample-input {
+      color: #6c757d;
+      font-style: italic;
+    }
+    
+    .sample-input.has-input {
+      color: #495057;
+      font-style: normal;
+    }
+    
+    /* 현재 날짜 설정 */
+    #reqDate {
+      background: #f8f9fa;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 네비게이션 -->
+  <nav style="background: linear-gradient(45deg, #667eea, #764ba2); padding: 15px; margin: -20px -20px 20px -20px; border-radius: 0 0 15px 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <div style="display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto;">
+      <h1 style="color: white; margin: 0; font-size: 24px;">물품신규등록</h1>
+      <div style="display: flex; gap: 15px;">
+        <a href="index.html" style="color: white; text-decoration: none; padding: 8px 16px; background: rgba(255,255,255,0.2); border-radius: 20px; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 메인</a>
+        <a href="search.html" style="color: white; text-decoration: none; padding: 8px 16px; background: rgba(255,255,255,0.2); border-radius: 20px; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">🔍 조회</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="title">신규상품등록</div>
+
+  <form id="inForm" onsubmit="return false;">
+    <!-- 기본 정보 테이블 -->
+    <table>
+      <tr>
+        <th>등록일자</th>
+        <td><input type="date" id="reqDate"></td>
+        <th>등록번호</th>
+        <td><input type="text" id="reqNo" placeholder="등록번호"></td>
+        <th>등록자</th>
+        <td><input type="text" id="reqUser" placeholder="등록자명"></td>
+      </tr>
+      <tr>
+        <th>참조부서</th>
+        <td colspan="7">
+          <div id="refDeptWrap" class="ref-dept-wrap">
+            <input type="text" class="ref-dept-input" name="refDept" placeholder="참조부서">
+          </div>
+          <button type="button" class="add-btn" onclick="addRefDept()">＋</button>
+        </td>
+      </tr>
+    </table>
+
+    <!-- 품목 테이블 -->
+    <table id="itemTable">
+      <tr>
+        <th>순번</th>
+        <th>상품코드</th>
+        <th>품명</th>
+        <th>규격</th>
+        <th>단위</th>
+        <th>수량</th>
+        <th>단가</th>
+        <th>금액</th>
+        <th>거래처</th>
+        <th>카테고리</th>
+        <th>입고 창고</th>
+        <th>비고</th>
+      </tr>
+      
+      <!-- 샘플 품목 데이터 (1행) -->
+      <tr>
+        <td>1</td>
+        <td><input type="text" id="code0" placeholder="P001" class="sample-input" data-sample="P001"></td>
+        <td><input type="text" id="item0" placeholder="A4 특수용지" class="sample-input" data-sample="A4 특수용지"></td>
+        <td><input type="text" id="spec0" placeholder="80g, 500매" class="sample-input" data-sample="80g, 500매"></td>
+        <td><input type="text" id="unit0" placeholder="박스" class="sample-input" data-sample="박스"></td>
+        <td><input type="number" id="qty0" placeholder="10" class="sample-input" data-sample="10"></td>
+        <td><input type="number" id="price0" placeholder="4000" class="sample-input" data-sample="4000"></td>
+        <td><input type="number" id="amount0" placeholder="40000" readonly></td>
+        <td><input type="text" id="vendor0" placeholder="(주)엔케이" class="sample-input" data-sample="(주)엔케이"></td>
+        <td><input type="text" id="cat0" placeholder="문구/사무용품" class="sample-input" data-sample="문구/사무용품"></td>
+        <td><input type="text" id="wh0" placeholder="본사 창고" class="sample-input" data-sample="본사 창고"></td>
+        <td><input type="text" id="note0" placeholder="일반용" class="sample-input" data-sample="일반용"></td>
+      </tr>
+      
+      <!-- 추가 빈 품목 행들 -->
+      <tr><td>2</td><td><input type="text" id="code1"></td><td><input type="text" id="item1"></td><td><input type="text" id="spec1"></td><td><input type="text" id="unit1"></td><td><input type="number" id="qty1"></td><td><input type="number" id="price1"></td><td><input type="number" id="amount1" readonly></td><td><input type="text" id="vendor1"></td><td><input type="text" id="cat1"></td><td><input type="text" id="wh1"></td><td><input type="text" id="note1"></td></tr>
+      <tr><td>3</td><td><input type="text" id="code2"></td><td><input type="text" id="item2"></td><td><input type="text" id="spec2"></td><td><input type="text" id="unit2"></td><td><input type="number" id="qty2"></td><td><input type="number" id="price2"></td><td><input type="number" id="amount2" readonly></td><td><input type="text" id="vendor2"></td><td><input type="text" id="cat2"></td><td><input type="text" id="wh2"></td><td><input type="text" id="note2"></td></tr>
+      <tr><td>4</td><td><input type="text" id="code3"></td><td><input type="text" id="item3"></td><td><input type="text" id="spec3"></td><td><input type="text" id="unit3"></td><td><input type="number" id="qty3"></td><td><input type="number" id="price3"></td><td><input type="number" id="amount3" readonly></td><td><input type="text" id="vendor3"></td><td><input type="text" id="cat3"></td><td><input type="text" id="wh3"></td><td><input type="text" id="note3"></td></tr>
+      <tr><td>5</td><td><input type="text" id="code4"></td><td><input type="text" id="item4"></td><td><input type="text" id="spec4"></td><td><input type="text" id="unit4"></td><td><input type="number" id="qty4"></td><td><input type="number" id="price4"></td><td><input type="number" id="amount4" readonly></td><td><input type="text" id="vendor4"></td><td><input type="text" id="cat4"></td><td><input type="text" id="wh4"></td><td><input type="text" id="note4"></td></tr>
+      <tr><td>6</td><td><input type="text" id="code5"></td><td><input type="text" id="item5"></td><td><input type="text" id="spec5"></td><td><input type="text" id="unit5"></td><td><input type="number" id="qty5"></td><td><input type="number" id="price5"></td><td><input type="number" id="amount5" readonly></td><td><input type="text" id="vendor5"></td><td><input type="text" id="cat5"></td><td><input type="text" id="wh5"></td><td><input type="text" id="note5"></td></tr>
+      <tr><td>7</td><td><input type="text" id="code6"></td><td><input type="text" id="item6"></td><td><input type="text" id="spec6"></td><td><input type="text" id="unit6"></td><td><input type="number" id="qty6"></td><td><input type="number" id="price6"></td><td><input type="number" id="amount6" readonly></td><td><input type="text" id="vendor6"></td><td><input type="text" id="cat6"></td><td><input type="text" id="wh6"></td><td><input type="text" id="note6"></td></tr>
+      <tr><td>8</td><td><input type="text" id="code7"></td><td><input type="text" id="item7"></td><td><input type="text" id="spec7"></td><td><input type="text" id="unit7"></td><td><input type="number" id="qty7"></td><td><input type="number" id="price7"></td><td><input type="number" id="amount7" readonly></td><td><input type="text" id="vendor7"></td><td><input type="text" id="cat7"></td><td><input type="text" id="wh7"></td><td><input type="text" id="note7"></td></tr>
+      <tr><td>9</td><td><input type="text" id="code8"></td><td><input type="text" id="item8"></td><td><input type="text" id="spec8"></td><td><input type="text" id="unit8"></td><td><input type="number" id="qty8"></td><td><input type="number" id="price8"></td><td><input type="number" id="amount8" readonly></td><td><input type="text" id="vendor8"></td><td><input type="text" id="cat8"></td><td><input type="text" id="wh8"></td><td><input type="text" id="note8"></td></tr>
+      <tr><td>10</td><td><input type="text" id="code9"></td><td><input type="text" id="item9"></td><td><input type="text" id="spec9"></td><td><input type="text" id="unit9"></td><td><input type="number" id="qty9"></td><td><input type="number" id="price9"></td><td><input type="number" id="amount9" readonly></td><td><input type="text" id="vendor9"></td><td><input type="text" id="cat9"></td><td><input type="text" id="wh9"></td><td><input type="text" id="note9"></td></tr>
+
+      <!-- 합계 행 -->
+      <tr>
+        <td colspan="7" class="bold" style="text-align:right;">합계</td>
+        <td class="bold"><input type="number" id="total" value="0" readonly></td>
+        <td colspan="5"></td>
+      </tr>
+    </table>
+
+    <!-- 비고 테이블 -->
+    <table>
+      <tr>
+        <th>비고</th>
+        <td colspan="10">
+          <textarea id="remark" placeholder="비고사항을 입력하세요."></textarea>
+        </td>
+      </tr>
+    </table>
+
+    <!-- 거래처 정보 테이블 -->
+    <table>
+      <tr>
+        <th>신규등록 담당자</th>
+        <td><input type="text" id="manager" placeholder="담당자명"></td>
+        <th>신규등록 담당자 연락처</th>
+        <td><input type="text" id="contact" placeholder="연락처"></td>
+        <th>신규등록 담당자 이메일</th>
+        <td><input type="email" id="email" placeholder="이메일 주소"></td>
+      </tr>
+    </table>
+
+    <!-- 서명 테이블 -->
+    <table>
+      <tr>
+        <th>등록자 서명</th>
+        <td class="signature">
+          <div class="signature-pad-wrap">
+            <div id="signature-request" class="signature-pad"></div>
+            <button type="button" class="clear-signature" id="clear-signature-request">지우기</button>
+          </div>
+        </td>
+        <th>검토자 서명</th>
+        <td class="signature">
+          <div class="signature-pad-wrap">
+            <div id="signature-review" class="signature-pad"></div>
+            <button type="button" class="clear-signature" id="clear-signature-review">지우기</button>
+          </div>
+        </td>
+        <th>승인자 서명</th>
+        <td class="signature">
+          <div class="signature-pad-wrap">
+            <div id="signature-approve" class="signature-pad"></div>
+            <button type="button" class="clear-signature" id="clear-signature-approve">지우기</button>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <br>
+
+    <!-- 액션 버튼들 -->
+    <button type="button" onclick="downloadExcel()">엑셀로 출력</button>
+    <button type="button" onclick="printDocument()">인쇄하기</button>
+    <button type="button" onclick="showSaveDialog()">💾 저장</button>
+    <button type="button" onclick="showLoadDialog()">📂 불러오기</button>
+  </form>
+
+  <!-- 저장 다이얼로그 -->
+  <div id="saveDialog" class="dialog-overlay" style="display: none;">
+    <div class="dialog">
+      <h3>💾 데이터 저장</h3>
+      <div class="form-group">
+        <label>저장할 이름:</label>
+        <input type="text" id="saveNameInput" placeholder="예: 입고요청서_20241226">
+      </div>
+      <div class="dialog-buttons">
+        <button onclick="saveData()">저장</button>
+        <button onclick="closeSaveDialog()">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 불러오기 다이얼로그 -->
+  <div id="loadDialog" class="dialog-overlay" style="display: none;">
+    <div class="dialog">
+      <h3>📂 데이터 불러오기</h3>
+      <div class="saved-list" id="savedDataList">
+        <!-- 저장된 데이터 목록이 여기에 표시됩니다 -->
+      </div>
+      <div class="dialog-buttons">
+        <button onclick="closeLoadDialog()">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 샘플 데이터 처리 및 현재 날짜 설정 -->
+  <script>
+    // 페이지 로드 시 현재 날짜 설정
+    document.addEventListener('DOMContentLoaded', function() {
+      // 현재 날짜 자동 설정
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('reqDate').value = today;
+      
+      // 샘플 입력 필드에 이벤트 리스너 추가
+      const sampleInputs = document.querySelectorAll('.sample-input');
+      
+      sampleInputs.forEach(input => {
+        // 포커스 시 샘플 데이터 설정
+        input.addEventListener('focus', function() {
+          if (!this.value && this.dataset.sample) {
+            this.value = this.dataset.sample;
+            this.select(); // 전체 텍스트 선택
+          }
+        });
+        
+        // 입력 시 스타일 변경
+        input.addEventListener('input', function() {
+          if (this.value) {
+            this.classList.add('has-input');
+          } else {
+            this.classList.remove('has-input');
+          }
+        });
+        
+        // 블러 시 빈 값이면 원래 상태로
+        input.addEventListener('blur', function() {
+          if (!this.value.trim()) {
+            this.value = '';
+            this.classList.remove('has-input');
+          }
+        });
+      });
+    });
+  </script>
+  
+  <!-- 메인 JavaScript 파일 -->
+  <script src="assets/js/main.js"></script>
+</body>
+
+</html>

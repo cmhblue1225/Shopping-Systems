@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>회사원 등록 시스템</title>
+  
+  <!-- 로컬 라이브러리 -->
+  <!-- jQuery -->
+  <script src="assets/js/libs/jquery-3.6.0.min.js"></script>
+  <!-- jSignature for signature capture -->
+  <script src="assets/js/libs/jSignature.min.js"></script>
+  <!-- ExcelJS -->
+  <script src="assets/js/libs/exceljs.min.js"></script>
+  <!-- FileSaver.js for saving files -->
+  <script src="assets/js/libs/FileSaver.min.js"></script>
+  
+  <!-- 로컬 스타일시트 -->
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+
+<body>
+  <!-- 네비게이션 -->
+  <nav style="background: linear-gradient(45deg, #667eea, #764ba2); padding: 15px; margin: -20px -20px 20px -20px; border-radius: 0 0 15px 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <div style="display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto;">
+      <h1 style="color: white; margin: 0; font-size: 24px;">회사원 등록</h1>
+      <div style="display: flex; gap: 15px;">
+        <a href="index.html" style="color: white; text-decoration: none; padding: 8px 16px; background: rgba(255,255,255,0.2); border-radius: 20px; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 메인</a>
+        <a href="search.html" style="color: white; text-decoration: none; padding: 8px 16px; background: rgba(255,255,255,0.2); border-radius: 20px; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">🔍 조회</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="title">회사원 등록</div>
+
+  <form id="empForm" onsubmit="return false;">
+    <!-- 기본 정보 테이블 -->
+    <table>
+      <tr>
+        <th>등록일자</th>
+        <td><input type="date" id="regDate" value="2025-06-27"></td>
+        <th>등록번호</th>
+        <td><input type="text" id="regNo" value="EMP001"></td>
+        <th>등록자</th>
+        <td><input type="text" id="regUser" value="인사관리자"></td>
+      </tr>
+    </table>
+
+    <!-- 회사원 정보 테이블 -->
+    <table id="employeeTable">
+      <tr>
+        <th>순번</th>
+        <th>사원번호</th>
+        <th>성명</th>
+        <th>부서</th>
+        <th>직책</th>
+        <th>입사일</th>
+        <th>전화번호</th>
+        <th>이메일</th>
+        <th>주소</th>
+        <th>상세주소</th>
+        <th>우편번호</th>
+        <th>급여등급</th>
+      </tr>
+      
+      <!-- 샘플 데이터 1행 -->
+      <tr>
+        <td>1</td>
+        <td><input type="text" id="empNo0" placeholder="사원번호" class="sample-input" value="EMP001" onfocus="clearSampleData(this)"></td>
+        <td><input type="text" id="empName0" placeholder="성명" class="sample-input" value="김철수" onfocus="clearSampleData(this)"></td>
+        <td><input type="text" id="empDept0" placeholder="부서" class="sample-input" value="개발팀" onfocus="clearSampleData(this)"></td>
+        <td><input type="text" id="empPosition0" placeholder="직책" class="sample-input" value="팀장" onfocus="clearSampleData(this)"></td>
+        <td><input type="date" id="empHireDate0" class="sample-input" value="2020-03-15" onfocus="clearSampleData(this)"></td>
+        <td><input type="text" id="empPhone0" placeholder="전화번호" class="sample-input" value="010-1234-5678" onfocus="clearSampleData(this)"></td>
+        <td><input type="email" id="empEmail0" placeholder="이메일" class="sample-input" value="kim.cs@company.com" onfocus="clearSampleData(this)"></td>
+        <td><input type="text" id="empAddr0" placeholder="주소" class="sample-input" value="서울시 강남구 테헤란로 123" onfocus="clearSampleData(this)"></td>
+        <td><input type="text" id="empAddrDetail0" placeholder="상세주소" class="sample-input" value="현대빌딩 10층" onfocus="clearSampleData(this)"></td>
+        <td><input type="text" id="empZip0" placeholder="우편번호" class="sample-input" value="06234" onfocus="clearSampleData(this)"></td>
+        <td><input type="text" id="empGrade0" placeholder="급여등급" class="sample-input" value="A급" onfocus="clearSampleData(this)"></td>
+      </tr>
+      
+      <!-- 추가 빈 회사원 입력 행들 -->
+      <tr><td>2</td><td><input type="text" id="empNo1" placeholder="사원번호"></td><td><input type="text" id="empName1" placeholder="성명"></td><td><input type="text" id="empDept1" placeholder="부서"></td><td><input type="text" id="empPosition1" placeholder="직책"></td><td><input type="date" id="empHireDate1"></td><td><input type="text" id="empPhone1" placeholder="전화번호"></td><td><input type="email" id="empEmail1" placeholder="이메일"></td><td><input type="text" id="empAddr1" placeholder="주소"></td><td><input type="text" id="empAddrDetail1" placeholder="상세주소"></td><td><input type="text" id="empZip1" placeholder="우편번호"></td><td><input type="text" id="empGrade1" placeholder="급여등급"></td></tr>
+      <tr><td>3</td><td><input type="text" id="empNo2" placeholder="사원번호"></td><td><input type="text" id="empName2" placeholder="성명"></td><td><input type="text" id="empDept2" placeholder="부서"></td><td><input type="text" id="empPosition2" placeholder="직책"></td><td><input type="date" id="empHireDate2"></td><td><input type="text" id="empPhone2" placeholder="전화번호"></td><td><input type="email" id="empEmail2" placeholder="이메일"></td><td><input type="text" id="empAddr2" placeholder="주소"></td><td><input type="text" id="empAddrDetail2" placeholder="상세주소"></td><td><input type="text" id="empZip2" placeholder="우편번호"></td><td><input type="text" id="empGrade2" placeholder="급여등급"></td></tr>
+      <tr><td>4</td><td><input type="text" id="empNo3" placeholder="사원번호"></td><td><input type="text" id="empName3" placeholder="성명"></td><td><input type="text" id="empDept3" placeholder="부서"></td><td><input type="text" id="empPosition3" placeholder="직책"></td><td><input type="date" id="empHireDate3"></td><td><input type="text" id="empPhone3" placeholder="전화번호"></td><td><input type="email" id="empEmail3" placeholder="이메일"></td><td><input type="text" id="empAddr3" placeholder="주소"></td><td><input type="text" id="empAddrDetail3" placeholder="상세주소"></td><td><input type="text" id="empZip3" placeholder="우편번호"></td><td><input type="text" id="empGrade3" placeholder="급여등급"></td></tr>
+      <tr><td>5</td><td><input type="text" id="empNo4" placeholder="사원번호"></td><td><input type="text" id="empName4" placeholder="성명"></td><td><input type="text" id="empDept4" placeholder="부서"></td><td><input type="text" id="empPosition4" placeholder="직책"></td><td><input type="date" id="empHireDate4"></td><td><input type="text" id="empPhone4" placeholder="전화번호"></td><td><input type="email" id="empEmail4" placeholder="이메일"></td><td><input type="text" id="empAddr4" placeholder="주소"></td><td><input type="text" id="empAddrDetail4" placeholder="상세주소"></td><td><input type="text" id="empZip4" placeholder="우편번호"></td><td><input type="text" id="empGrade4" placeholder="급여등급"></td></tr>
+      <tr><td>6</td><td><input type="text" id="empNo5" placeholder="사원번호"></td><td><input type="text" id="empName5" placeholder="성명"></td><td><input type="text" id="empDept5" placeholder="부서"></td><td><input type="text" id="empPosition5" placeholder="직책"></td><td><input type="date" id="empHireDate5"></td><td><input type="text" id="empPhone5" placeholder="전화번호"></td><td><input type="email" id="empEmail5" placeholder="이메일"></td><td><input type="text" id="empAddr5" placeholder="주소"></td><td><input type="text" id="empAddrDetail5" placeholder="상세주소"></td><td><input type="text" id="empZip5" placeholder="우편번호"></td><td><input type="text" id="empGrade5" placeholder="급여등급"></td></tr>
+      <tr><td>7</td><td><input type="text" id="empNo6" placeholder="사원번호"></td><td><input type="text" id="empName6" placeholder="성명"></td><td><input type="text" id="empDept6" placeholder="부서"></td><td><input type="text" id="empPosition6" placeholder="직책"></td><td><input type="date" id="empHireDate6"></td><td><input type="text" id="empPhone6" placeholder="전화번호"></td><td><input type="email" id="empEmail6" placeholder="이메일"></td><td><input type="text" id="empAddr6" placeholder="주소"></td><td><input type="text" id="empAddrDetail6" placeholder="상세주소"></td><td><input type="text" id="empZip6" placeholder="우편번호"></td><td><input type="text" id="empGrade6" placeholder="급여등급"></td></tr>
+      <tr><td>8</td><td><input type="text" id="empNo7" placeholder="사원번호"></td><td><input type="text" id="empName7" placeholder="성명"></td><td><input type="text" id="empDept7" placeholder="부서"></td><td><input type="text" id="empPosition7" placeholder="직책"></td><td><input type="date" id="empHireDate7"></td><td><input type="text" id="empPhone7" placeholder="전화번호"></td><td><input type="email" id="empEmail7" placeholder="이메일"></td><td><input type="text" id="empAddr7" placeholder="주소"></td><td><input type="text" id="empAddrDetail7" placeholder="상세주소"></td><td><input type="text" id="empZip7" placeholder="우편번호"></td><td><input type="text" id="empGrade7" placeholder="급여등급"></td></tr>
+    </table>
+
+    <!-- 비고 테이블 -->
+    <table>
+      <tr>
+        <th>비고</th>
+        <td colspan="11">
+          <textarea id="remark" rows="3" style="width: 100%; resize: vertical;">회사원 등록 시 주의사항 및 특이사항을 입력하세요.</textarea>
+        </td>
+      </tr>
+    </table>
+
+    <!-- 등록 담당자 정보 테이블 -->
+    <table>
+      <tr>
+        <th>등록 담당자</th>
+        <td><input type="text" id="regManager" value="김인사"></td>
+        <th>등록 담당자 연락처</th>
+        <td><input type="text" id="regContact" value="010-1111-2222"></td>
+        <th>등록 담당자 이메일</th>
+        <td><input type="email" id="regEmail" value="hr.admin@company.com"></td>
+      </tr>
+    </table>
+
+    <!-- 서명 테이블 -->
+    <table>
+      <tr>
+        <th>등록 요청자 서명</th>
+        <td class="signature">
+          <div class="signature-pad-wrap">
+            <div id="signature-request" class="signature-pad"></div>
+            <button type="button" class="clear-signature" id="clear-signature-request">지우기</button>
+          </div>
+        </td>
+        <th>등록 검토자 서명</th>
+        <td class="signature">
+          <div class="signature-pad-wrap">
+            <div id="signature-review" class="signature-pad"></div>
+            <button type="button" class="clear-signature" id="clear-signature-review">지우기</button>
+          </div>
+        </td>
+        <th>등록 승인자 서명</th>
+        <td class="signature">
+          <div class="signature-pad-wrap">
+            <div id="signature-approve" class="signature-pad"></div>
+            <button type="button" class="clear-signature" id="clear-signature-approve">지우기</button>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <br>
+
+    <!-- 액션 버튼들 -->
+    <button type="button" onclick="downloadExcel()">엑셀로 출력</button>
+    <button type="button" onclick="printDocument()">인쇄하기</button>
+    <button type="button" onclick="showSaveDialog()">💾 저장</button>
+    <button type="button" onclick="showLoadDialog()">📂 불러오기</button>
+    <button type="button" onclick="registerEmployee()" style="background-color: #4CAF50; color: white; font-weight: bold;">👥 등록</button>
+  </form>
+
+  <!-- 저장 다이얼로그 -->
+  <div id="saveDialog" class="dialog-overlay" style="display: none;">
+    <div class="dialog">
+      <h3>💾 데이터 저장</h3>
+      <div class="form-group">
+        <label>저장할 이름:</label>
+        <input type="text" id="saveNameInput" placeholder="예: 회사원등록_20241227">
+      </div>
+      <div class="dialog-buttons">
+        <button onclick="saveData()">저장</button>
+        <button onclick="closeSaveDialog()">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 불러오기 다이얼로그 -->
+  <div id="loadDialog" class="dialog-overlay" style="display: none;">
+    <div class="dialog">
+      <h3>📂 데이터 불러오기</h3>
+      <div class="saved-list" id="savedDataList">
+        <!-- 저장된 데이터 목록이 여기에 표시됩니다 -->
+      </div>
+      <div class="dialog-buttons">
+        <button onclick="closeLoadDialog()">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 메인 JavaScript 파일 -->
+  <script src="assets/js/main.js"></script>
+  
+  <!-- 샘플 데이터 제거 스크립트 -->
+  <script>
+    function clearSampleData(element) {
+      if (element.classList.contains('sample-input')) {
+        element.value = '';
+        element.classList.remove('sample-input');
+        element.style.color = '#000';
+      }
+    }
+    
+    // 샘플 데이터 스타일 적용
+    document.addEventListener('DOMContentLoaded', function() {
+      const sampleInputs = document.querySelectorAll('.sample-input');
+      sampleInputs.forEach(input => {
+        input.style.color = '#888';
+        input.style.fontStyle = 'italic';
+      });
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>거래처 등록 시스템</title>
+  
+  <!-- 로컬 라이브러리 -->
+  <script src="assets/js/libs/jquery-3.6.0.min.js"></script>
+  <script src="assets/js/libs/jSignature.min.js"></script>
+  <script src="assets/js/libs/exceljs.min.js"></script>
+  <script src="assets/js/libs/FileSaver.min.js"></script>
+  
+  <!-- 로컬 스타일시트 -->
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+
+<body>
+  <!-- 네비게이션 -->
+  <nav style="background: linear-gradient(45deg, #667eea, #764ba2); padding: 15px; margin: -20px -20px 20px -20px; border-radius: 0 0 15px 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <div style="display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto;">
+      <h1 style="color: white; margin: 0; font-size: 24px;">거래처 등록</h1>
+      <div style="display: flex; gap: 15px;">
+        <a href="index.html" style="color: white; text-decoration: none; padding: 8px 16px; background: rgba(255,255,255,0.2); border-radius: 20px; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 메인</a>
+        <a href="search.html" style="color: white; text-decoration: none; padding: 8px 16px; background: rgba(255,255,255,0.2); border-radius: 20px; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">🔍 조회</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="title">거래처 등록 신청서</div>
+
+  <form id="vendorForm" onsubmit="return false;">
+    
+    <!-- 등록자 정보 -->
+    <h3 class="section-title">등록자 정보</h3>
+    <table>
+      <tr>
+        <th>등록일</th>
+        <td><input type="date" id="regDate"></td>
+        <th>등록 담당자 (MD)</th>
+        <td><input type="text" id="regMd" placeholder="MD담당자1" class="sample-input"></td>
+      </tr>
+    </table>
+
+    <!-- 1. 기본 정보 -->
+    <h3 class="section-title">1. 기본 정보</h3>
+    <table>
+      <tr>
+        <th>거래처명</th>
+        <td colspan="3"><input type="text" id="vendorName" placeholder="(주)글로벌패션" class="sample-input"></td>
+      </tr>
+      <tr>
+        <th>사업자등록번호</th>
+        <td><input type="text" id="bizRegNum" placeholder="123-45-67890" class="sample-input"></td>
+        <th>법인등록번호</th>
+        <td><input type="text" id="corpRegNum" placeholder="법인인 경우 입력"></td>
+      </tr>
+      <tr>
+        <th>대표자명</th>
+        <td><input type="text" id="ceoName" placeholder="김대표" class="sample-input"></td>
+        <th>대표전화</th>
+        <td><input type="tel" id="vendorTel"></td>
+      </tr>
+      <tr>
+        <th>업태</th>
+        <td><input type="text" id="bizType" placeholder="예: 도소매, 제조업"></td>
+        <th>종목</th>
+        <td><input type="text" id="bizItem" placeholder="예: 의류, 전자상거래"></td>
+      </tr>
+      <tr>
+        <th>사업장 주소</th>
+        <td colspan="3"><input type="text" id="bizAddr"></td>
+      </tr>
+      <tr>
+        <th>팩스번호</th>
+        <td><input type="tel" id="faxNum"></td>
+        <th>쇼핑몰/웹사이트</th>
+        <td><input type="url" id="websiteUrl" placeholder="https://example.com"></td>
+      </tr>
+    </table>
+
+    <!-- 2. 담당자 정보 -->
+    <h3 class="section-title">2. 담당자 정보</h3>
+    <table>
+      <tr>
+        <th>담당자명</th>
+        <td><input type="text" id="contactName" placeholder="예: 김민준 과장"></td>
+        <th>휴대폰번호</th>
+        <td><input type="tel" id="contactMobile"></td>
+      </tr>
+      <tr>
+        <th>이메일</th>
+        <td><input type="email" id="contactEmail"></td>
+        <th>정산 담당자</th>
+        <td><input type="text" id="paymentContactName" placeholder="위 담당자와 동일시 비워도 무방"></td>
+      </tr>
+      <tr>
+        <th>정산 담당자 연락처</th>
+        <td colspan="3"><input type="tel" id="paymentContactTel"></td>
+      </tr>
+    </table>
+
+    <!-- 3. 정산 정보 -->
+    <h3 class="section-title">3. 정산 정보</h3>
+    <table>
+      <tr>
+        <th>은행명</th>
+        <td><input type="text" id="bankName"></td>
+        <th>계좌번호</th>
+        <td><input type="text" id="bankAccountNum"></td>
+      </tr>
+      <tr>
+        <th>예금주</th>
+        <td><input type="text" id="bankAccountHolder" placeholder="사업자명과 일치해야 함"></td>
+        <th>세금계산서 발행 이메일</th>
+        <td><input type="email" id="taxEmail" placeholder="bill@example.com"></td>
+      </tr>
+    </table>
+
+    <!-- 4. 계약 및 운영 정보 -->
+    <h3 class="section-title">4. 계약 및 운영 정보</h3>
+    <table>
+      <tr>
+        <th>거래형태</th>
+        <td>
+          <select id="dealType">
+            <option value="위탁판매">위탁판매</option>
+            <option value="사입">사입</option>
+            <option value="드랍쉬핑">드랍쉬핑</option>
+            <option value="기타">기타</option>
+          </select>
+        </td>
+        <th>공급 카테고리</th>
+        <td><input type="text" id="supplyCategory" placeholder="예: 여성의류, 가전"></td>
+      </tr>
+      <tr>
+        <th>정산주기/지급조건</th>
+        <td><input type="text" id="paymentCycle" placeholder="예: 월 마감 후 익월 15일"></td>
+        <th>수수료율 (%)</th>
+        <td><input type="number" id="commissionRate" placeholder="위탁판매 시 적용"></td>
+      </tr>
+      <tr>
+        <th>계약 시작일</th>
+        <td><input type="date" id="contractStartDate"></td>
+        <th>계약 종료일</th>
+        <td><input type="date" id="contractEndDate"></td>
+      </tr>
+      <tr>
+        <th>출고지 주소</th>
+        <td colspan="3"><input type="text" id="shippingAddr"></td>
+      </tr>
+      <tr>
+        <th>반품/교환 주소</th>
+        <td colspan="3"><input type="text" id="returnAddr"></td>
+      </tr>
+    </table>
+
+    <!-- 5. 특이사항 -->
+    <h3 class="section-title">5. 특이사항</h3>
+    <table>
+      <tr>
+        <td colspan="4">
+          <textarea id="remark" rows="4" placeholder="계약 관련 특별 조건이나 기타 참고사항을 기재해주세요."></textarea>
+        </td>
+      </tr>
+    </table>
+
+    <!-- 6. 승인 -->
+    <h3 class="section-title">6. 승인</h3>
+    <table>
+      <tr>
+        <th>담당자 (MD)</th>
+        <th>팀장 검토</th>
+        <th>부서장 승인</th>
+      </tr>
+      <tr>
+        <td class="signature">
+          <div class="signature-pad-wrap">
+            <div id="signature-request" class="signature-pad"></div>
+            <button type="button" class="clear-signature" id="clear-signature-request">지우기</button>
+          </div>
+        </td>
+        <td class="signature">
+          <div class="signature-pad-wrap">
+            <div id="signature-review" class="signature-pad"></div>
+            <button type="button" class="clear-signature" id="clear-signature-review">지우기</button>
+          </div>
+        </td>
+        <td class="signature">
+          <div class="signature-pad-wrap">
+            <div id="signature-approve" class="signature-pad"></div>
+            <button type="button" class="clear-signature" id="clear-signature-approve">지우기</button>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <br>
+
+    <!-- 액션 버튼들 -->
+    <div class="action-buttons">
+      <button type="button" onclick="downloadExcel()">엑셀로 출력</button>
+      <button type="button" onclick="printDocument()">인쇄하기</button>
+      <button type="button" onclick="showSaveDialog()">💾 저장</button>
+      <button type="button" onclick="showLoadDialog()">📂 불러오기</button>
+    </div>
+  </form>
+
+  <!-- 저장 다이얼로그 -->
+  <div id="saveDialog" class="dialog-overlay" style="display: none;">
+    <div class="dialog">
+      <h3>💾 데이터 저장</h3>
+      <div class="form-group">
+        <label>저장할 이름:</label>
+        <input type="text" id="saveNameInput" placeholder="예: 거래처등록_업체명">
+      </div>
+      <div class="dialog-buttons">
+        <button onclick="saveData()">저장</button>
+        <button onclick="closeSaveDialog()">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 불러오기 다이얼로그 -->
+  <div id="loadDialog" class="dialog-overlay" style="display: none;">
+    <div class="dialog">
+      <h3>📂 데이터 불러오기</h3>
+      <div class="saved-list" id="savedDataList">
+        <!-- 저장된 데이터 목록이 여기에 표시됩니다 -->
+      </div>
+      <div class="dialog-buttons">
+        <button onclick="closeLoadDialog()">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 메인 JavaScript 파일 -->
+  <script src="assets/js/main.js"></script>
+  
+  <script>
+    // 페이지 로드 시 오늘 날짜 설정
+    document.addEventListener('DOMContentLoaded', function() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('regDate').value = today;
+    });
+
+    // placeholder 기능 (사용자 입력 시 placeholder 효과 제거)
+    document.addEventListener('DOMContentLoaded', function() {
+      const sampleInputs = document.querySelectorAll('.sample-input');
+      
+      sampleInputs.forEach(input => {
+        const originalPlaceholder = input.placeholder;
+        
+        input.addEventListener('focus', function() {
+          if (this.style.color === 'gray' || this.style.color === '#999') {
+            this.style.color = '';
+          }
+        });
+        
+        input.addEventListener('input', function() {
+          if (this.value.length > 0) {
+            this.style.color = '';
+          }
+        });
+        
+        input.addEventListener('blur', function() {
+          if (this.value.length === 0) {
+            this.placeholder = originalPlaceholder;
+          }
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,104 @@
+{
+  "sample_employees": [
+    {
+      "regDate": "2025-06-27",
+      "regNo": "EMP001",
+      "regUser": "인사관리자",
+      "employees": [
+        {
+          "empNo": "EMP001",
+          "empName": "김철수",
+          "empDept": "개발팀",
+          "empPosition": "팀장",
+          "empHireDate": "2020-03-15",
+          "empPhone": "010-1234-5678",
+          "empEmail": "kim.cs@company.com",
+          "empAddr": "서울시 강남구 테헤란로 123",
+          "empAddrDetail": "현대빌딩 10층",
+          "empZip": "06234",
+          "empGrade": "A급"
+        },
+        {
+          "empNo": "EMP002",
+          "empName": "이영희",
+          "empDept": "마케팅팀",
+          "empPosition": "과장",
+          "empHireDate": "2021-06-01",
+          "empPhone": "010-2345-6789",
+          "empEmail": "lee.yh@company.com",
+          "empAddr": "경기도 성남시 분당구 판교로 456",
+          "empAddrDetail": "판교타워 5층",
+          "empZip": "13494",
+          "empGrade": "B급"
+        },
+        {
+          "empNo": "EMP003",
+          "empName": "박민수",
+          "empDept": "인사팀",
+          "empPosition": "대리",
+          "empHireDate": "2022-01-10",
+          "empPhone": "010-3456-7890",
+          "empEmail": "park.ms@company.com",
+          "empAddr": "서울시 서초구 강남대로 789",
+          "empAddrDetail": "서초빌딩 7층",
+          "empZip": "06621",
+          "empGrade": "C급"
+        },
+        {
+          "empNo": "EMP004",
+          "empName": "정수진",
+          "empDept": "영업팀",
+          "empPosition": "주임",
+          "empHireDate": "2023-03-20",
+          "empPhone": "010-4567-8901",
+          "empEmail": "jung.sj@company.com",
+          "empAddr": "부산시 해운대구 센텀로 100",
+          "empAddrDetail": "센텀빌딩 3층",
+          "empZip": "48058",
+          "empGrade": "C급"
+        },
+        {
+          "empNo": "EMP005",
+          "empName": "최동훈",
+          "empDept": "재무팀",
+          "empPosition": "사원",
+          "empHireDate": "2024-01-15",
+          "empPhone": "010-5678-9012",
+          "empEmail": "choi.dh@company.com",
+          "empAddr": "대구시 중구 동성로 200",
+          "empAddrDetail": "동성빌딩 2층",
+          "empZip": "41911",
+          "empGrade": "D급"
+        }
+      ],
+      "regManager": "인사관리자",
+      "regContact": "010-1111-2222",
+      "regEmail": "hr.admin@company.com",
+      "remark": "회사원 등록 시 주의사항 및 특이사항을 입력하세요."
+    }
+  ],
+  "departments": [
+    "개발팀",
+    "마케팅팀", 
+    "인사팀",
+    "영업팀",
+    "재무팀",
+    "기획팀",
+    "생산팀",
+    "품질팀"
+  ],
+  "positions": [
+    "팀장",
+    "과장",
+    "대리",
+    "주임",
+    "사원",
+    "인턴"
+  ],
+  "grade_levels": [
+    "A급",
+    "B급", 
+    "C급",
+    "D급"
+  ]
+}

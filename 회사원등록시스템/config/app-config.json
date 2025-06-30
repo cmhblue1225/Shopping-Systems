@@ -1,0 +1,39 @@
+{
+  "application": {
+    "name": "회사원등록시스템",
+    "version": "1.0.0",
+    "description": "로컬스토리지 지원 회사원 등록 및 관리 시스템",
+    "updated": "2025-06-27"
+  },
+  "defaults": {
+    "company": {
+      "name": "한성주식회사",
+      "representative": "대표이사",
+      "address": "서울특별시 강남구",
+      "phone": "02-111-1111",
+      "business_type": "서비스",
+      "business_item": "인사관리"
+    },
+    "employee": {
+      "grade_levels": ["A급", "B급", "C급", "D급"],
+      "departments": ["개발팀", "마케팅팀", "인사팀", "영업팀", "재무팀"],
+      "positions": ["팀장", "과장", "대리", "주임", "사원"]
+    },
+    "max_employees": 20
+  },
+  "features": {
+    "employee_registration": true,
+    "excel_export": true,
+    "print_support": true,
+    "data_persistence": true,
+    "local_storage": true,
+    "auto_save": true,
+    "signature_support": true,
+    "department_management": true
+  },
+  "storage": {
+    "local_storage_key": "회사원등록_임시저장",
+    "auto_save_events": ["excel_export", "print", "register"],
+    "supported_formats": ["png", "jpg", "jpeg", "gif"]
+  }
+}

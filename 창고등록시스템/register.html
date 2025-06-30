@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>창고 등록 시스템</title>
+  
+  <!-- 로컬 라이브러리 -->
+  <!-- jQuery -->
+  <script src="assets/js/libs/jquery-3.6.0.min.js"></script>
+  <!-- jSignature for signature capture -->
+  <script src="assets/js/libs/jSignature.min.js"></script>
+  <!-- ExcelJS -->
+  <script src="assets/js/libs/exceljs.min.js"></script>
+  <!-- FileSaver.js for saving files -->
+  <script src="assets/js/libs/FileSaver.min.js"></script>
+  
+  <!-- 로컬 스타일시트 -->
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+
+<body>
+  <!-- 네비게이션 -->
+  <nav style="background: linear-gradient(45deg, #667eea, #764ba2); padding: 15px; margin: -20px -20px 20px -20px; border-radius: 0 0 15px 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <div style="display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto;">
+      <h1 style="color: white; margin: 0; font-size: 24px;">창고 등록</h1>
+      <div style="display: flex; gap: 15px;">
+        <a href="index.html" style="color: white; text-decoration: none; padding: 8px 16px; background: rgba(255,255,255,0.2); border-radius: 20px; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">🏠 메인</a>
+        <a href="search.html" style="color: white; text-decoration: none; padding: 8px 16px; background: rgba(255,255,255,0.2); border-radius: 20px; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">🔍 조회</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="title">창고 등록</div>
+
+  <form id="inForm" onsubmit="return false;">
+    <!-- 기본 정보 테이블 -->
+    <table>
+      <tr>
+        <th>등록일자</th>
+        <td><input type="date" id="regDate"></td>
+        <th>등록번호</th>
+        <td><input type="text" id="regNo" placeholder="W001" class="sample-input"></td>
+        <th>등록자</th>
+        <td><input type="text" id="regUser" placeholder="관리자" class="sample-input"></td>
+      </tr>
+    </table>
+
+    <!-- 창고 정보 테이블 -->
+    <table id="warehouseTable">
+      <tr>
+        <th>순번</th>
+        <th>창고 코드</th>
+        <th>창고 이름</th>
+        <th>창고 유형</th>
+        <th>주소</th>
+        <th>상세 주소</th>
+        <th>우편번호</th>
+        <th>지역</th>
+        <th>담당자명</th>
+        <th>담당자 연락처</th>
+        <th>이메일</th>
+      </tr>
+      
+      <!-- 첫 번째 샘플 데이터 행 -->
+      <tr>
+        <td>1</td>
+        <td><input type="text" id="whCode0" placeholder="WH001" class="sample-input"></td>
+        <td><input type="text" id="whName0" placeholder="본사 창고" class="sample-input"></td>
+        <td><input type="text" id="whType0" placeholder="일반창고" class="sample-input"></td>
+        <td><input type="text" id="whAddr0" placeholder="서울시 강남구 테헤란로 123" class="sample-input"></td>
+        <td><input type="text" id="whAddrDetail0" placeholder="지하 1층" class="sample-input"></td>
+        <td><input type="text" id="whZip0" placeholder="06234" class="sample-input"></td>
+        <td><input type="text" id="whRegion0" placeholder="서울" class="sample-input"></td>
+        <td><input type="text" id="whManager0" placeholder="김창고" class="sample-input"></td>
+        <td><input type="text" id="whPhone0" placeholder="010-1234-5678" class="sample-input"></td>
+        <td><input type="email" id="whEmail0" placeholder="warehouse1@company.com" class="sample-input"></td>
+      </tr>
+      
+      <!-- 추가 빈 창고 입력 행들 -->
+      <tr><td>2</td><td><input type="text" id="whCode1"></td><td><input type="text" id="whName1"></td><td><input type="text" id="whType1"></td><td><input type="text" id="whAddr1"></td><td><input type="text" id="whAddrDetail1"></td><td><input type="text" id="whZip1"></td><td><input type="text" id="whRegion1"></td><td><input type="text" id="whManager1"></td><td><input type="text" id="whPhone1"></td><td><input type="email" id="whEmail1"></td></tr>
+      <tr><td>3</td><td><input type="text" id="whCode2"></td><td><input type="text" id="whName2"></td><td><input type="text" id="whType2"></td><td><input type="text" id="whAddr2"></td><td><input type="text" id="whAddrDetail2"></td><td><input type="text" id="whZip2"></td><td><input type="text" id="whRegion2"></td><td><input type="text" id="whManager2"></td><td><input type="text" id="whPhone2"></td><td><input type="email" id="whEmail2"></td></tr>
+      <tr><td>4</td><td><input type="text" id="whCode3"></td><td><input type="text" id="whName3"></td><td><input type="text" id="whType3"></td><td><input type="text" id="whAddr3"></td><td><input type="text" id="whAddrDetail3"></td><td><input type="text" id="whZip3"></td><td><input type="text" id="whRegion3"></td><td><input type="text" id="whManager3"></td><td><input type="text" id="whPhone3"></td><td><input type="email" id="whEmail3"></td></tr>
+      <tr><td>5</td><td><input type="text" id="whCode4"></td><td><input type="text" id="whName4"></td><td><input type="text" id="whType4"></td><td><input type="text" id="whAddr4"></td><td><input type="text" id="whAddrDetail4"></td><td><input type="text" id="whZip4"></td><td><input type="text" id="whRegion4"></td><td><input type="text" id="whManager4"></td><td><input type="text" id="whPhone4"></td><td><input type="email" id="whEmail4"></td></tr>
+      <tr><td>6</td><td><input type="text" id="whCode5"></td><td><input type="text" id="whName5"></td><td><input type="text" id="whType5"></td><td><input type="text" id="whAddr5"></td><td><input type="text" id="whAddrDetail5"></td><td><input type="text" id="whZip5"></td><td><input type="text" id="whRegion5"></td><td><input type="text" id="whManager5"></td><td><input type="text" id="whPhone5"></td><td><input type="email" id="whEmail5"></td></tr>
+      <tr><td>7</td><td><input type="text" id="whCode6"></td><td><input type="text" id="whName6"></td><td><input type="text" id="whType6"></td><td><input type="text" id="whAddr6"></td><td><input type="text" id="whAddrDetail6"></td><td><input type="text" id="whZip6"></td><td><input type="text" id="whRegion6"></td><td><input type="text" id="whManager6"></td><td><input type="text" id="whPhone6"></td><td><input type="email" id="whEmail6"></td></tr>
+      <tr><td>8</td><td><input type="text" id="whCode7"></td><td><input type="text" id="whName7"></td><td><input type="text" id="whType7"></td><td><input type="text" id="whAddr7"></td><td><input type="text" id="whAddrDetail7"></td><td><input type="text" id="whZip7"></td><td><input type="text" id="whRegion7"></td><td><input type="text" id="whManager7"></td><td><input type="text" id="whPhone7"></td><td><input type="email" id="whEmail7"></td></tr>
+    </table>
+
+    <!-- 비고 테이블 -->
+    <table>
+      <tr>
+        <th>비고</th>
+        <td colspan="10">
+          <textarea id="remark" rows="3" style="width: 100%; resize: vertical;" placeholder="창고 등록 시 주의사항 및 특이사항을 입력하세요." class="sample-input"></textarea>
+        </td>
+      </tr>
+    </table>
+
+    <!-- 등록 담당자 정보 테이블 -->
+    <table>
+      <tr>
+        <th>등록 담당자</th>
+        <td><input type="text" id="regManager" placeholder="창고관리자" class="sample-input"></td>
+        <th>등록 담당자 연락처</th>
+        <td><input type="text" id="regContact" placeholder="010-1111-2222" class="sample-input"></td>
+        <th>등록 담당자 이메일</th>
+        <td><input type="email" id="regEmail" placeholder="warehouse.admin@company.com" class="sample-input"></td>
+      </tr>
+    </table>
+
+    <!-- 서명 테이블 -->
+    <table>
+      <tr>
+        <th>등록 요청자 서명</th>
+        <td class="signature">
+          <div class="signature-pad-wrap">
+            <div id="signature-request" class="signature-pad"></div>
+            <button type="button" class="clear-signature" id="clear-signature-request">지우기</button>
+          </div>
+        </td>
+        <th>등록 검토자 서명</th>
+        <td class="signature">
+          <div class="signature-pad-wrap">
+            <div id="signature-review" class="signature-pad"></div>
+            <button type="button" class="clear-signature" id="clear-signature-review">지우기</button>
+          </div>
+        </td>
+        <th>등록 승인자 서명</th>
+        <td class="signature">
+          <div class="signature-pad-wrap">
+            <div id="signature-approve" class="signature-pad"></div>
+            <button type="button" class="clear-signature" id="clear-signature-approve">지우기</button>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <br>
+
+    <!-- 액션 버튼들 -->
+    <button type="button" onclick="downloadExcel()">엑셀로 출력</button>
+    <button type="button" onclick="printDocument()">인쇄하기</button>
+    <button type="button" onclick="showSaveDialog()">💾 저장</button>
+    <button type="button" onclick="showLoadDialog()">📂 불러오기</button>
+    <button type="button" onclick="registerWarehouse()" style="background-color: #4CAF50; color: white; font-weight: bold;">🏢 등록</button>
+  </form>
+
+  <!-- 저장 다이얼로그 -->
+  <div id="saveDialog" class="dialog-overlay" style="display: none;">
+    <div class="dialog">
+      <h3>💾 데이터 저장</h3>
+      <div class="form-group">
+        <label>저장할 이름:</label>
+        <input type="text" id="saveNameInput" placeholder="예: 창고등록_20241227">
+      </div>
+      <div class="dialog-buttons">
+        <button onclick="saveData()">저장</button>
+        <button onclick="closeSaveDialog()">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 불러오기 다이얼로그 -->
+  <div id="loadDialog" class="dialog-overlay" style="display: none;">
+    <div class="dialog">
+      <h3>📂 데이터 불러오기</h3>
+      <div class="saved-list" id="savedDataList">
+        <!-- 저장된 데이터 목록이 여기에 표시됩니다 -->
+      </div>
+      <div class="dialog-buttons">
+        <button onclick="closeLoadDialog()">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 메인 JavaScript 파일 -->
+  <script src="assets/js/main.js"></script>
+  
+  <script>
+    // 페이지 로드 시 오늘 날짜 설정
+    document.addEventListener('DOMContentLoaded', function() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('regDate').value = today;
+    });
+
+    // placeholder 기능 (사용자 입력 시 placeholder 효과 제거)
+    document.addEventListener('DOMContentLoaded', function() {
+      const sampleInputs = document.querySelectorAll('.sample-input');
+      
+      sampleInputs.forEach(input => {
+        const originalPlaceholder = input.placeholder;
+        
+        input.addEventListener('focus', function() {
+          if (this.style.color === 'gray' || this.style.color === '#999') {
+            this.style.color = '';
+          }
+        });
+        
+        input.addEventListener('input', function() {
+          if (this.value.length > 0) {
+            this.style.color = '';
+          }
+        });
+        
+        input.addEventListener('blur', function() {
+          if (this.value.length === 0) {
+            this.placeholder = originalPlaceholder;
+          }
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>

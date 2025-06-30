@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>회사원 등록 시스템</title>
+  
+  <!-- 로컬 라이브러리 -->
+  <!-- jQuery -->
+  <script src="../assets/js/libs/jquery-3.6.0.min.js"></script>
+  <!-- jSignature for signature capture -->
+  <script src="../assets/js/libs/jSignature.min.js"></script>
+  <!-- ExcelJS -->
+  <script src="../assets/js/libs/exceljs.min.js"></script>
+  <!-- FileSaver.js for saving files -->
+  <script src="../assets/js/libs/FileSaver.min.js"></script>
+  
+  <!-- 로컬 스타일시트 -->
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+
+<body>
+  <div class="title">회사원 등록</div>
+
+  <form id="empForm" onsubmit="return false;">
+    <!-- 기본 정보 테이블 -->
+    <table>
+      <tr>
+        <th>등록일자</th>
+        <td><input type="date" id="regDate" value="2025-06-27"></td>
+        <th>등록번호</th>
+        <td><input type="text" id="regNo" value="EMP001"></td>
+        <th>등록자</th>
+        <td><input type="text" id="regUser" value="인사관리자"></td>
+      </tr>
+    </table>
+
+    <!-- 회사원 정보 테이블 -->
+    <table id="employeeTable">
+      <tr>
+        <th>순번</th>
+        <th>사원번호</th>
+        <th>성명</th>
+        <th>부서</th>
+        <th>직책</th>
+        <th>입사일</th>
+        <th>전화번호</th>
+        <th>이메일</th>
+        <th>주소</th>
+        <th>상세주소</th>
+        <th>우편번호</th>
+        <th>급여등급</th>
+      </tr>
+      
+      <!-- 기본 회사원 데이터 -->
+      <script>
+        const defaultEmployees = [
+          ["EMP001", "김철수", "개발팀", "팀장", "2020-03-15", "010-1234-5678", "kim.cs@company.com", "서울시 강남구 테헤란로 123", "현대빌딩 10층", "06234", "A급"],
+          ["EMP002", "이영희", "마케팅팀", "과장", "2021-06-01", "010-2345-6789", "lee.yh@company.com", "경기도 성남시 분당구 판교로 456", "판교타워 5층", "13494", "B급"],
+          ["EMP003", "박민수", "인사팀", "대리", "2022-01-10", "010-3456-7890", "park.ms@company.com", "서울시 서초구 강남대로 789", "서초빌딩 7층", "06621", "C급"]
+        ];
+
+        for(let i=0;i<3;i++) {
+          document.write('<tr>');
+          document.write(`<td>${i+1}</td>`);
+          document.write(`<td><input type="text" id="empNo${i}" value="${defaultEmployees[i][0]}"></td>`);
+          document.write(`<td><input type="text" id="empName${i}" value="${defaultEmployees[i][1]}"></td>`);
+          document.write(`<td><input type="text" id="empDept${i}" value="${defaultEmployees[i][2]}"></td>`);
+          document.write(`<td><input type="text" id="empPosition${i}" value="${defaultEmployees[i][3]}"></td>`);
+          document.write(`<td><input type="date" id="empHireDate${i}" value="${defaultEmployees[i][4]}"></td>`);
+          document.write(`<td><input type="text" id="empPhone${i}" value="${defaultEmployees[i][5]}"></td>`);
+          document.write(`<td><input type="email" id="empEmail${i}" value="${defaultEmployees[i][6]}"></td>`);
+          document.write(`<td><input type="text" id="empAddr${i}" value="${defaultEmployees[i][7]}"></td>`);
+          document.write(`<td><input type="text" id="empAddrDetail${i}" value="${defaultEmployees[i][8]}"></td>`);
+          document.write(`<td><input type="text" id="empZip${i}" value="${defaultEmployees[i][9]}"></td>`);
+          document.write(`<td><input type="text" id="empGrade${i}" value="${defaultEmployees[i][10]}"></td>`);
+          document.write('</tr>');
+        }
+      </script>
+      
+      <!-- 추가 빈 회사원 입력 행들 -->
+      <tr><td>4</td><td><input type="text" id="empNo3"></td><td><input type="text" id="empName3"></td><td><input type="text" id="empDept3"></td><td><input type="text" id="empPosition3"></td><td><input type="date" id="empHireDate3"></td><td><input type="text" id="empPhone3"></td><td><input type="email" id="empEmail3"></td><td><input type="text" id="empAddr3"></td><td><input type="text" id="empAddrDetail3"></td><td><input type="text" id="empZip3"></td><td><input type="text" id="empGrade3"></td></tr>
+      <tr><td>5</td><td><input type="text" id="empNo4"></td><td><input type="text" id="empName4"></td><td><input type="text" id="empDept4"></td><td><input type="text" id="empPosition4"></td><td><input type="date" id="empHireDate4"></td><td><input type="text" id="empPhone4"></td><td><input type="email" id="empEmail4"></td><td><input type="text" id="empAddr4"></td><td><input type="text" id="empAddrDetail4"></td><td><input type="text" id="empZip4"></td><td><input type="text" id="empGrade4"></td></tr>
+      <tr><td>6</td><td><input type="text" id="empNo5"></td><td><input type="text" id="empName5"></td><td><input type="text" id="empDept5"></td><td><input type="text" id="empPosition5"></td><td><input type="date" id="empHireDate5"></td><td><input type="text" id="empPhone5"></td><td><input type="email" id="empEmail5"></td><td><input type="text" id="empAddr5"></td><td><input type="text" id="empAddrDetail5"></td><td><input type="text" id="empZip5"></td><td><input type="text" id="empGrade5"></td></tr>
+      <tr><td>7</td><td><input type="text" id="empNo6"></td><td><input type="text" id="empName6"></td><td><input type="text" id="empDept6"></td><td><input type="text" id="empPosition6"></td><td><input type="date" id="empHireDate6"></td><td><input type="text" id="empPhone6"></td><td><input type="email" id="empEmail6"></td><td><input type="text" id="empAddr6"></td><td><input type="text" id="empAddrDetail6"></td><td><input type="text" id="empZip6"></td><td><input type="text" id="empGrade6"></td></tr>
+      <tr><td>8</td><td><input type="text" id="empNo7"></td><td><input type="text" id="empName7"></td><td><input type="text" id="empDept7"></td><td><input type="text" id="empPosition7"></td><td><input type="date" id="empHireDate7"></td><td><input type="text" id="empPhone7"></td><td><input type="email" id="empEmail7"></td><td><input type="text" id="empAddr7"></td><td><input type="text" id="empAddrDetail7"></td><td><input type="text" id="empZip7"></td><td><input type="text" id="empGrade7"></td></tr>
+    </table>
+
+    <!-- 비고 테이블 -->
+    <table>
+      <tr>
+        <th>비고</th>
+        <td colspan="11">
+          <textarea id="remark" rows="3" style="width: 100%; resize: vertical;">회사원 등록 시 주의사항 및 특이사항을 입력하세요.</textarea>
+        </td>
+      </tr>
+    </table>
+
+    <!-- 등록 담당자 정보 테이블 -->
+    <table>
+      <tr>
+        <th>등록 담당자</th>
+        <td><input type="text" id="regManager" value="김인사"></td>
+        <th>등록 담당자 연락처</th>
+        <td><input type="text" id="regContact" value="010-1111-2222"></td>
+        <th>등록 담당자 이메일</th>
+        <td><input type="email" id="regEmail" value="hr.admin@company.com"></td>
+      </tr>
+    </table>
+
+    <!-- 서명 테이블 -->
+    <table>
+      <tr>
+        <th>등록 요청자 서명</th>
+        <td class="signature">
+          <div class="signature-pad-wrap">
+            <div id="signature-request" class="signature-pad"></div>
+            <button type="button" class="clear-signature" id="clear-signature-request">지우기</button>
+          </div>
+        </td>
+        <th>등록 검토자 서명</th>
+        <td class="signature">
+          <div class="signature-pad-wrap">
+            <div id="signature-review" class="signature-pad"></div>
+            <button type="button" class="clear-signature" id="clear-signature-review">지우기</button>
+          </div>
+        </td>
+        <th>등록 승인자 서명</th>
+        <td class="signature">
+          <div class="signature-pad-wrap">
+            <div id="signature-approve" class="signature-pad"></div>
+            <button type="button" class="clear-signature" id="clear-signature-approve">지우기</button>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <br>
+
+    <!-- 액션 버튼들 -->
+    <button type="button" onclick="downloadExcel()">엑셀로 출력</button>
+    <button type="button" onclick="printDocument()">인쇄하기</button>
+    <button type="button" onclick="showSaveDialog()">💾 저장</button>
+    <button type="button" onclick="showLoadDialog()">📂 불러오기</button>
+    <button type="button" onclick="registerEmployee()" style="background-color: #4CAF50; color: white; font-weight: bold;">👥 등록</button>
+  </form>
+
+  <!-- 저장 다이얼로그 -->
+  <div id="saveDialog" class="dialog-overlay" style="display: none;">
+    <div class="dialog">
+      <h3>💾 데이터 저장</h3>
+      <div class="form-group">
+        <label>저장할 이름:</label>
+        <input type="text" id="saveNameInput" placeholder="예: 회사원등록_20241227">
+      </div>
+      <div class="dialog-buttons">
+        <button onclick="saveData()">저장</button>
+        <button onclick="closeSaveDialog()">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 불러오기 다이얼로그 -->
+  <div id="loadDialog" class="dialog-overlay" style="display: none;">
+    <div class="dialog">
+      <h3>📂 데이터 불러오기</h3>
+      <div class="saved-list" id="savedDataList">
+        <!-- 저장된 데이터 목록이 여기에 표시됩니다 -->
+      </div>
+      <div class="dialog-buttons">
+        <button onclick="closeLoadDialog()">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 메인 JavaScript 파일 -->
+  <script src="../assets/js/main.js"></script>
+</body>
+
+</html>

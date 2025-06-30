@@ -1,0 +1,88 @@
+{
+  "defaultWarehouses": [
+    {
+      "code": "WH001",
+      "name": "본사 창고",
+      "type": "일반창고",
+      "address": "서울시 강남구 테헤란로 123",
+      "addressDetail": "지하 1층",
+      "zipCode": "06234",
+      "region": "서울",
+      "manager": "김창고",
+      "phone": "010-1234-5678",
+      "email": "warehouse1@company.com"
+    },
+    {
+      "code": "WH002", 
+      "name": "배송센터",
+      "type": "물류창고",
+      "address": "경기도 고양시 일산동구 중앙로 456",
+      "addressDetail": "1층",
+      "zipCode": "10380",
+      "region": "경기",
+      "manager": "이물류",
+      "phone": "010-2345-6789",
+      "email": "warehouse2@company.com"
+    },
+    {
+      "code": "WH003",
+      "name": "냉장창고", 
+      "type": "냉장창고",
+      "address": "인천시 남동구 논현로 789",
+      "addressDetail": "2층",
+      "zipCode": "21556",
+      "region": "인천",
+      "manager": "박냉장",
+      "phone": "010-3456-7890",
+      "email": "warehouse3@company.com"
+    }
+  ],
+  "warehouseTypes": [
+    "일반창고",
+    "물류창고",
+    "냉장창고", 
+    "냉동창고",
+    "자동창고",
+    "유통센터",
+    "보세창고"
+  ],
+  "regions": [
+    "서울",
+    "경기",
+    "인천",
+    "부산",
+    "대구",
+    "광주",
+    "대전",
+    "울산",
+    "세종",
+    "강원",
+    "충북",
+    "충남",
+    "전북",
+    "전남",
+    "경북",
+    "경남",
+    "제주"
+  ],
+  "defaultRegistration": {
+    "regDate": "2025-06-27",
+    "regNo": "W001",
+    "regUser": "관리자",
+    "regManager": "창고관리자",
+    "regContact": "010-1111-2222",
+    "regEmail": "warehouse.admin@company.com"
+  },
+  "sampleRemarks": [
+    "창고 등록 시 주의사항 및 특이사항을 입력하세요.",
+    "화재 예방을 위한 안전 규정 준수 필요",
+    "냉장 온도 유지 관리 철저",
+    "보안 시설 완비된 창고",
+    "24시간 운영 가능한 물류센터"
+  ],
+  "contactFormats": {
+    "phone": "010-XXXX-XXXX",
+    "email": "example@company.com",
+    "zipCode": "XXXXX"
+  }
+}

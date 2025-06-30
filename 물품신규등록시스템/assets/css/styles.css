@@ -1,0 +1,646 @@
+/* 
+ * 물품신규등록 시스템 - 모던 스타일시트
+ * 반응형 디자인과 사용자 경험을 고려한 CSS
+ */
+
+/* =========================
+   전역 스타일
+   ========================= */
+
+* {
+  box-sizing: border-box;
+}
+
+body { 
+  font-family: 'Segoe UI', '맑은 고딕', 'Malgun Gothic', Arial, sans-serif; 
+  margin: 0;
+  padding: 20px; 
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+  line-height: 1.6;
+  color: #2c3e50;
+}
+
+/* =========================
+   테이블 스타일
+   ========================= */
+
+table { 
+  border-collapse: collapse; 
+  margin-bottom: 20px; 
+  width: 100%;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+table:hover {
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+}
+
+th, td { 
+  border: 1px solid #e1e8ed; 
+  padding: 12px 15px; 
+  text-align: center; 
+  font-size: 14px;
+  transition: all 0.3s ease;
+} 
+
+th { 
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  border-color: #5a6cb8;
+}
+
+td {
+  background: #fff;
+}
+
+tr:nth-child(even) td {
+  background: #f8f9ff;
+}
+
+tr:hover td {
+  background: #e3f2fd;
+}
+
+/* =========================
+   입력 필드 스타일
+   ========================= */
+
+input[type="text"], 
+input[type="number"], 
+input[type="date"],
+input[type="email"],
+textarea { 
+  width: 100%;
+  max-width: 200px;
+  font-size: 14px; 
+  padding: 8px 12px; 
+  border: 2px solid #e1e8ed;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  background: #fff;
+  color: #2c3e50;
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  background: #f8f9ff;
+}
+
+input[type="email"] { 
+  max-width: 250px;
+}
+
+input[type="number"] { 
+  max-width: 100px; 
+  text-align: right;
+}
+
+input[readonly] {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  color: #6c757d;
+  font-weight: 600;
+}
+
+/* 샘플 입력 스타일 개선 */
+.sample-input {
+  color: #9ca3af;
+  font-style: italic;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+}
+
+.sample-input:focus {
+  color: #2c3e50;
+  font-style: normal;
+  background: #f8f9ff;
+}
+
+.sample-input.has-input {
+  color: #2c3e50;
+  font-style: normal;
+  background: #fff;
+}
+
+/* =========================
+   제목 및 텍스트 스타일
+   ========================= */
+
+.title { 
+  font-size: 28px; 
+  font-weight: 700; 
+  padding: 20px 0; 
+  text-align: center; 
+  color: #2c3e50;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 30px;
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.bold { 
+  font-weight: 600; 
+  color: #2c3e50;
+}
+
+/* =========================
+   버튼 스타일
+   ========================= */
+
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  margin: 5px;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+.add-btn {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  padding: 8px 16px;
+  font-size: 16px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-btn {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  padding: 6px 12px;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+/* =========================
+   서명 패드 스타일
+   ========================= */
+
+.signature { 
+  width: 150px; 
+  height: 80px; 
+  padding: 10px;
+}
+
+.signature-pad-wrap { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center;
+  gap: 10px;
+} 
+
+.signature-pad { 
+  border: 2px solid #e1e8ed; 
+  background: #fff; 
+  width: 150px; 
+  height: 80px; 
+  border-radius: 8px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+} 
+
+.signature-pad:hover {
+  border-color: #667eea;
+}
+
+.clear-signature { 
+  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+/* =========================
+   참조부서 관리
+   ========================= */
+
+.ref-dept-wrap { 
+  display: flex; 
+  flex-wrap: wrap; 
+  gap: 10px; 
+  align-items: center;
+  padding: 10px;
+  background: #f8f9ff;
+  border-radius: 8px;
+  min-height: 50px;
+} 
+
+.ref-dept-input { 
+  max-width: 150px;
+  margin: 0;
+}
+
+/* =========================
+   텍스트 영역
+   ========================= */
+
+textarea { 
+  min-width: 400px; 
+  min-height: 80px; 
+  width: 100%; 
+  max-width: 100%;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  padding: 12px;
+} 
+
+/* =========================
+   다이얼로그 스타일
+   ========================= */
+
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.dialog {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  min-width: 500px;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.dialog h3 {
+  margin-top: 0;
+  color: #2c3e50;
+  border-bottom: 3px solid #667eea;
+  padding-bottom: 15px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.form-group input {
+  width: 100%;
+  max-width: none;
+  padding: 12px;
+  border: 2px solid #e1e8ed;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.dialog-buttons {
+  margin-top: 25px;
+  text-align: right;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.dialog-buttons button {
+  margin: 0;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-weight: 600;
+}
+
+.dialog-buttons button:first-child {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.dialog-buttons button:last-child {
+  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+}
+
+.saved-list {
+  max-height: 350px;
+  overflow-y: auto;
+  border: 2px solid #e1e8ed;
+  border-radius: 12px;
+  padding: 15px;
+  background: #f8f9ff;
+}
+
+.saved-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid #e1e8ed;
+  margin-bottom: 10px;
+  background: white;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.saved-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.saved-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.saved-item-info {
+  flex: 1;
+}
+
+.saved-item-name {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 5px;
+  font-size: 16px;
+}
+
+.saved-item-date {
+  font-size: 13px;
+  color: #6c757d;
+}
+
+.saved-item-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.saved-item-actions button {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  margin: 0;
+}
+
+.load-btn {
+  background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+}
+
+.delete-btn {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+.empty-list {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  padding: 40px;
+  font-size: 16px;
+}
+
+/* =========================
+   반응형 디자인
+   ========================= */
+
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+  
+  .title {
+    font-size: 24px;
+    padding: 15px 0;
+  }
+  
+  table {
+    font-size: 12px;
+  }
+  
+  th, td {
+    padding: 8px 10px;
+  }
+  
+  input[type="text"], 
+  input[type="number"], 
+  input[type="date"],
+  input[type="email"] {
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  textarea {
+    min-width: 100%;
+  }
+  
+  .dialog {
+    min-width: 90%;
+    margin: 20px;
+    padding: 20px;
+  }
+  
+  .ref-dept-wrap {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .ref-dept-input {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 20px;
+  }
+  
+  table {
+    font-size: 11px;
+  }
+  
+  th, td {
+    padding: 6px 8px;
+  }
+  
+  button {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+}
+
+/* =========================
+   인쇄용 스타일
+   ========================= */
+
+.print-only { 
+  display: none; 
+}
+
+@media print {
+  body {
+    background: white;
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+  }
+  
+  /* 화면 요소 숨기기 */
+  button, .clear-signature, nav { 
+    display: none !important; 
+  }
+  
+  /* 인쇄 전용 요소 보이기 */
+  .print-only { 
+    display: block !important; 
+  }
+  
+  /* 페이지 설정 */
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+  
+  table { 
+    page-break-inside: avoid; 
+    width: 100%;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  
+  th, td { 
+    padding: 4px 6px; 
+    font-size: 10px;
+    border: 1px solid #000;
+  }
+  
+  th {
+    background: #f0f0f0 !important;
+    color: #000 !important;
+  }
+  
+  .title { 
+    font-size: 18px;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  
+  textarea { 
+    border: 1px solid #000; 
+    resize: none; 
+    min-height: 30px;
+    background: transparent;
+  }
+  
+  input { 
+    border: none !important; 
+    background: transparent !important; 
+    text-align: center;
+    box-shadow: none !important;
+  }
+  
+  .signature-pad { 
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+  }
+}
+
+/* =========================
+   애니메이션 및 특수 효과
+   ========================= */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.5s ease;
+}
+
+/* 호버 효과 개선 */
+input:hover:not(:focus):not([readonly]) {
+  border-color: #b8c6ea;
+  background: #f8f9ff;
+}
+
+textarea:hover:not(:focus) {
+  border-color: #b8c6ea;
+  background: #f8f9ff;
+}
+
+/* 스크롤바 스타일링 */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5a6cb8 0%, #6a4190 100%);
+}

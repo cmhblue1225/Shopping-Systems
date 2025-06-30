@@ -1,0 +1,104 @@
+{
+  "app": {
+    "name": "창고등록 시스템",
+    "version": "3.0.0",
+    "description": "완전 오프라인 지원 웹 기반 창고 등록, 서명, 엑셀 출력 및 인쇄 시스템",
+    "author": "개발팀",
+    "created": "2025-06-19",
+    "updated": "2025-06-27"
+  },
+  "settings": {
+    "autoSave": true,
+    "offlineSupport": true,
+    "defaultValues": {
+      "regDate": "auto",
+      "regUser": "관리자",
+      "regNo": "W001"
+    },
+    "validation": {
+      "required": ["regDate", "regNo", "regUser"],
+      "maxWarehouses": 8
+    },
+    "storage": {
+      "localStorageKey": "창고등록_임시저장",
+      "multiSaveKey": "창고등록_저장목록",
+      "autoSaveInterval": 30000,
+      "autoSaveEvents": ["excel_export", "print"],
+      "includeSignatures": true
+    }
+  },
+  "libraries": {
+    "local": true,
+    "versions": {
+      "jquery": "3.6.0",
+      "jSignature": "2.1.2",
+      "exceljs": "4.3.0",
+      "fileSaver": "2.0.5"
+    },
+    "sizes": {
+      "jquery": "89KB",
+      "jSignature": "24KB", 
+      "exceljs": "925KB",
+      "fileSaver": "3KB"
+    }
+  },
+  "excel": {
+    "fileName": "창고등록.xlsx",
+    "sheetName": "창고등록",
+    "formatting": {
+      "font": "맑은 고딕",
+      "titleSize": 16,
+      "normalSize": 14,
+      "smallSize": 11
+    },
+    "includeSignatures": true,
+    "columnWidths": {
+      "순번": 8,
+      "창고코드": 12,
+      "창고이름": 14,
+      "창고유형": 12,
+      "주소": 20,
+      "상세주소": 12,
+      "우편번호": 10,
+      "지역": 8,
+      "담당자명": 12,
+      "담당자연락처": 14,
+      "이메일": 28
+    }
+  },
+  "print": {
+    "pageSize": "A4",
+    "orientation": "landscape",
+    "margin": "5mm",
+    "includeSignatures": true
+  },
+  "warehouse": {
+    "types": [
+      "일반창고",
+      "물류창고", 
+      "냉장창고",
+      "냉동창고",
+      "자동창고",
+      "유통센터"
+    ],
+    "regions": [
+      "서울",
+      "경기",
+      "인천",
+      "부산",
+      "대구",
+      "광주",
+      "대전",
+      "울산",
+      "세종",
+      "강원",
+      "충북",
+      "충남",
+      "전북",
+      "전남",
+      "경북",
+      "경남",
+      "제주"
+    ]
+  }
+}

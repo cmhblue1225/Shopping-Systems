@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>거래처등록 관리 시스템</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <style>
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .system-title {
+      color: white;
+      font-size: 48px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .system-subtitle {
+      color: rgba(255,255,255,0.9);
+      font-size: 18px;
+      text-align: center;
+      margin-bottom: 50px;
+    }
+    
+    .button-container {
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+    
+    .main-button {
+      background: white;
+      color: #333;
+      border: none;
+      padding: 25px 40px;
+      font-size: 20px;
+      font-weight: bold;
+      border-radius: 15px;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+      min-width: 200px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .main-button:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+      background: #f8f9fa;
+    }
+    
+    .main-button:active {
+      transform: translateY(-2px);
+    }
+    
+    .register-btn {
+      background: linear-gradient(45deg, #28a745, #20c997);
+      color: white;
+    }
+    
+    .search-btn {
+      background: linear-gradient(45deg, #007bff, #6610f2);
+      color: white;
+    }
+    
+    .dummy-data-btn {
+      background: linear-gradient(45deg, #ffc107, #fd7e14);
+      color: white;
+      font-size: 16px;
+      padding: 15px 25px;
+      min-width: auto;
+    }
+    
+    .icon {
+      font-size: 24px;
+    }
+    
+    .stats-container {
+      background: rgba(255,255,255,0.1);
+      border-radius: 15px;
+      padding: 30px;
+      margin-top: 20px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .stats-title {
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .stats-info {
+      color: rgba(255,255,255,0.9);
+      text-align: center;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    
+    .stats-number {
+      color: #ffc107;
+      font-weight: bold;
+      font-size: 24px;
+    }
+    
+    @media (max-width: 768px) {
+      .system-title {
+        font-size: 36px;
+      }
+      
+      .button-container {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .main-button {
+        width: 100%;
+        max-width: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <h1 class="system-title">거래처등록 관리 시스템</h1>
+    <p class="system-subtitle">효율적인 거래처 등록 및 관리를 위한 통합 시스템</p>
+    
+    <div class="button-container">
+      <a href="register.html" class="main-button register-btn">
+        <span class="icon">🏢</span>
+        거래처 등록
+      </a>
+      <a href="search.html" class="main-button search-btn">
+        <span class="icon">🔍</span>
+        거래처 조회
+      </a>
+    </div>
+    
+    <button class="main-button dummy-data-btn" onclick="generateDummyData()">
+      <span class="icon">🎲</span>
+      더미 데이터 생성
+    </button>
+    
+    <div class="stats-container">
+      <div class="stats-title">📊 시스템 현황</div>
+      <div class="stats-info">
+        저장된 거래처정보: <span class="stats-number" id="totalCount">0</span>건<br>
+        오늘 등록된 거래처: <span class="stats-number" id="todayCount">0</span>건
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 페이지 로드 시 통계 정보 업데이트
+    document.addEventListener('DOMContentLoaded', function() {
+      updateStats();
+    });
+
+    function updateStats() {
+      const savedDataList = JSON.parse(localStorage.getItem('거래처등록_저장목록') || '{}');
+      const totalCount = Object.keys(savedDataList).length;
+      
+      const today = new Date().toISOString().split('T')[0];
+      let todayCount = 0;
+      
+      Object.values(savedDataList).forEach(data => {
+        if (data.savedAt && data.savedAt.split('T')[0] === today) {
+          todayCount++;
+        }
+      });
+      
+      document.getElementById('totalCount').textContent = totalCount;
+      document.getElementById('todayCount').textContent = todayCount;
+    }
+
+    function generateDummyData() {
+      if (confirm('대량의 더미 데이터를 생성하시겠습니까? (기존 데이터와 함께 저장됩니다)')) {
+        const savedDataList = JSON.parse(localStorage.getItem('거래처등록_저장목록') || '{}');
+        
+        const dealTypes = ['위탁판매', '사입', '드랍쉬핑', '기타'];
+        const categories = ['여성의류', '남성의류', '아동복', '스포츠용품', '가전제품', '생활용품', '식품', '건강용품'];
+        const bizTypes = ['도소매업', '제조업', '서비스업', '운수업', '건설업'];
+        const bizItems = ['의류판매', '전자상거래', '물류유통', '제조가공', '컨설팅'];
+        const banks = ['신한은행', '국민은행', '우리은행', '하나은행', 'KEB하나은행', '농협은행', '기업은행'];
+        
+        const companyNames = [
+          '(주)글로벌패션', '(주)스타일코리아', '(주)퍼스트몰', '(주)베스트라이프', '(주)프리미엄샵',
+          '(주)패션플러스', '(주)라이프스타일', '(주)모던하우스', '(주)스마트몰', '(주)트렌드코리아',
+          '(주)뉴웨이브', '(주)에코라이프', '(주)퓨처샵', '(주)크리에이티브', '(주)이노베이션',
+          '(주)하모니', '(주)엘리트', '(주)빅마켓', '(주)골든샵', '(주)슈퍼스타일'
+        ];
+        
+        const ceoNames = ['김대표', '이사장', '박대표', '최사장', '정대표', '강사장', '윤대표', '임사장', '송대표', '장사장'];
+        
+        for (let i = 1; i <= 30; i++) {
+          const regDate = new Date();
+          regDate.setDate(regDate.getDate() - Math.floor(Math.random() * 60));
+          
+          const saveName = `더미_거래처등록_${String(i).padStart(3, '0')}`;
+          
+          const startDate = new Date(regDate);
+          startDate.setDate(startDate.getDate() + Math.floor(Math.random() * 14) + 1);
+          
+          const endDate = new Date(startDate);
+          endDate.setFullYear(endDate.getFullYear() + 1);
+          
+          const formData = {
+            regDate: regDate.toISOString().split('T')[0],
+            regMd: `MD담당자${(i % 5) + 1}`,
+            vendorName: companyNames[i % companyNames.length],
+            bizRegNum: `${String(Math.floor(Math.random() * 900) + 100)}-${String(Math.floor(Math.random() * 90) + 10)}-${String(Math.floor(Math.random() * 90000) + 10000)}`,
+            corpRegNum: Math.random() > 0.5 ? `${String(Math.floor(Math.random() * 900000) + 100000)}-${String(Math.floor(Math.random() * 9000000) + 1000000)}` : '',
+            ceoName: ceoNames[Math.floor(Math.random() * ceoNames.length)],
+            vendorTel: `02-${String(Math.floor(Math.random() * 9000) + 1000)}-${String(Math.floor(Math.random() * 9000) + 1000)}`,
+            bizType: bizTypes[Math.floor(Math.random() * bizTypes.length)],
+            bizItem: bizItems[Math.floor(Math.random() * bizItems.length)],
+            bizAddr: `서울시 ${['강남구', '서초구', '중구', '종로구', '마포구'][Math.floor(Math.random() * 5)]} ${['테헤란로', '강남대로', '세종대로', '종로', '마포대로'][Math.floor(Math.random() * 5)]} ${Math.floor(Math.random() * 999) + 1}`,
+            faxNum: `02-${String(Math.floor(Math.random() * 9000) + 1000)}-${String(Math.floor(Math.random() * 9000) + 1000)}`,
+            websiteUrl: `https://www.company${String(i).padStart(2, '0')}.co.kr`,
+            contactName: `${['김', '이', '박', '최', '정'][Math.floor(Math.random() * 5)]}담당 ${['과장', '차장', '부장'][Math.floor(Math.random() * 3)]}`,
+            contactMobile: `010-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`,
+            contactEmail: `contact${i}@company${String(i).padStart(2, '0')}.co.kr`,
+            paymentContactName: Math.random() > 0.7 ? `${['김', '이', '박'][Math.floor(Math.random() * 3)]}정산담당` : '',
+            paymentContactTel: Math.random() > 0.7 ? `010-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}` : '',
+            bankName: banks[Math.floor(Math.random() * banks.length)],
+            bankAccountNum: `${String(Math.floor(Math.random() * 900) + 100)}-${String(Math.floor(Math.random() * 900000) + 100000)}-${String(Math.floor(Math.random() * 90) + 10)}`,
+            bankAccountHolder: companyNames[i % companyNames.length],
+            taxEmail: `tax${i}@company${String(i).padStart(2, '0')}.co.kr`,
+            dealType: dealTypes[Math.floor(Math.random() * dealTypes.length)],
+            supplyCategory: categories[Math.floor(Math.random() * categories.length)],
+            paymentCycle: ['월 마감 후 익월 15일', '월 마감 후 익월 말일', '분기 마감 후 익월 15일'][Math.floor(Math.random() * 3)],
+            commissionRate: Math.floor(Math.random() * 30) + 5,
+            contractStartDate: startDate.toISOString().split('T')[0],
+            contractEndDate: endDate.toISOString().split('T')[0],
+            shippingAddr: `경기도 ${['고양시', '부천시', '안양시'][Math.floor(Math.random() * 3)]} 물류단지 ${Math.floor(Math.random() * 99) + 1}`,
+            returnAddr: `경기도 ${['고양시', '부천시', '안양시'][Math.floor(Math.random() * 3)]} 물류단지 ${Math.floor(Math.random() * 99) + 1}`,
+            remark: `${regDate.getMonth() + 1}월 거래처 등록 - 계약 조건 준수 요망`,
+            signatures: {},
+            savedAt: new Date().toISOString()
+          };
+
+          savedDataList[saveName] = formData;
+        }
+
+        localStorage.setItem('거래처등록_저장목록', JSON.stringify(savedDataList));
+        alert('30개의 더미 데이터가 생성되었습니다!');
+        updateStats();
+      }
+    }
+  </script>
+</body>
+</html>
