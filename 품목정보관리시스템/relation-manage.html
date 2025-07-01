@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>품목-이미지 연결 관리</title>
+  <style>
+    body { font-family: '맑은 고딕', Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 1600px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #4CAF50, #81C784); color: white; padding: 20px; border-radius: 10px 10px 0 0; }
+    .header h1 { margin: 0; }
+    .content { padding: 20px; }
+    .btn-group { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+    .btn-primary { background: #007bff; color: white; }
+    .btn-primary:hover { background: #0056b3; }
+    .btn-success { background: #28a745; color: white; }
+    .btn-success:hover { background: #1e7e34; }
+    .panels { display: flex; gap: 20px; margin-bottom: 20px; }
+    .panel { flex: 1; background: #f8f9fa; border-radius: 8px; padding: 20px; }
+    .panel h3 { margin-top: 0; color: #333; }
+    .list-container { max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 5px; }
+    .list-item { 
+      padding: 10px; 
+      border-bottom: 1px solid #eee; 
+      cursor: pointer; 
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .list-item:hover { background: #f0f0f0; }
+    .list-item.selected { background: #007bff; color: white; }
+    .list-item.multi-selected { background: #28a745; color: white; }
+    .list-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; }
+    .item-info { flex: 1; }
+    .item-name { font-weight: bold; }
+    .item-details { font-size: 12px; color: #666; }
+    .selected .item-details { color: #ccc; }
+    .connection-area { text-align: center; padding: 40px; background: #e9ecef; border-radius: 8px; margin: 20px 0; }
+    .connection-btn { 
+      background: #28a745; 
+      color: white; 
+      border: none; 
+      padding: 15px 30px; 
+      font-size: 18px; 
+      border-radius: 8px; 
+      cursor: pointer;
+      margin: 0 10px;
+    }
+    .connection-btn:hover { background: #1e7e34; }
+    .connection-btn:disabled { background: #6c757d; cursor: not-allowed; }
+    .relations-panel { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-top: 20px; }
+    .relation-item { 
+      display: flex; 
+      align-items: center; 
+      gap: 15px; 
+      padding: 15px; 
+      border: 1px solid #eee; 
+      border-radius: 5px; 
+      margin-bottom: 10px;
+      background: #fafafa;
+    }
+    .relation-image { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; }
+    .relation-info { flex: 1; }
+    .relation-arrow { font-size: 20px; color: #007bff; }
+    .btn-danger { background: #dc3545; color: white; }
+    .btn-danger:hover { background: #c82333; }
+    .search-container { margin-bottom: 15px; }
+    .search-input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+    .stats-container { background: #e3f2fd; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+    .stats-item { display: inline-block; margin-right: 20px; }
+    .stats-number { font-weight: bold; color: #1976d2; font-size: 18px; }
+    .empty-message { text-align: center; padding: 40px; color: #666; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>품목-이미지 연결 관리</h1>
+      <p>품목과 이미지 간의 다대다 관계를 설정하고 관리합니다</p>
+    </div>
+    
+    <div class="content">
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="loadData()">🔄 데이터 새로고침</button>
+        <button class="btn btn-success" onclick="exportRelations()">📤 연결 정보 내보내기</button>
+        <a href="index.html" class="btn" style="background: #6c757d; color: white;">🏠 메인으로</a>
+      </div>
+      
+      <div class="stats-container">
+        <div class="stats-item">총 연결: <span class="stats-number" id="totalRelations">0</span>개</div>
+        <div class="stats-item">연결된 품목: <span class="stats-number" id="connectedItems">0</span>개</div>
+        <div class="stats-item">연결된 이미지: <span class="stats-number" id="connectedImages">0</span>개</div>
+      </div>
+      
+      <div class="panels">
+        <div class="panel">
+          <h3>📦 품목 목록</h3>
+          <div class="search-container">
+            <input type="text" id="itemSearch" class="search-input" placeholder="품목 검색..." onkeyup="filterItems()">
+          </div>
+          <div class="list-container" id="itemList">
+            <div class="empty-message">품목을 불러오는 중...</div>
+          </div>
+          <div style="margin-top: 10px; font-size: 12px; color: #666;">
+            선택된 품목: <span id="selectedItemName">없음</span><br>
+            <label><input type="checkbox" id="multiSelectItems" onchange="toggleMultiSelectItems()"> 다중 선택 모드</label>
+          </div>
+        </div>
+        
+        <div class="panel">
+          <h3>🖼️ 이미지 목록</h3>
+          <div class="search-container">
+            <input type="text" id="imageSearch" class="search-input" placeholder="이미지 검색..." onkeyup="filterImages()">
+          </div>
+          <div class="list-container" id="imageList">
+            <div class="empty-message">이미지를 불러오는 중...</div>
+          </div>
+          <div style="margin-top: 10px; font-size: 12px; color: #666;">
+            선택된 이미지: <span id="selectedImageName">없음</span><br>
+            <label><input type="checkbox" id="multiSelectImages" onchange="toggleMultiSelectImages()"> 다중 선택 모드</label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="connection-area">
+        <h3>🔗 연결 관리</h3>
+        <p>품목과 이미지를 각각 선택한 후 연결 또는 해제 버튼을 클릭하세요</p>
+        <p><small>💡 다중 선택 모드: 여러 품목과 여러 이미지를 한번에 연결할 수 있습니다</small></p>
+        <button id="connectBtn" class="connection-btn" onclick="connectItems()" disabled>
+          ➕ 연결하기
+        </button>
+        <button id="disconnectBtn" class="connection-btn" onclick="disconnectItems()" disabled style="background: #dc3545;">
+          ❌ 연결 해제
+        </button>
+        <button class="connection-btn" onclick="clearAllSelections()" style="background: #6c757d;">
+          🗑️ 선택 초기화
+        </button>
+      </div>
+      
+      <div class="relations-panel">
+        <h3>📋 현재 연결 상태</h3>
+        <div id="relationsList">
+          <div class="empty-message">등록된 연결이 없습니다.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let items = [];
+    let images = [];
+    let relations = [];
+    let selectedItem = null;
+    let selectedImage = null;
+    let selectedItems = [];
+    let selectedImages = [];
+    let multiSelectMode = {
+      items: false,
+      images: false
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+      loadData();
+    });
+
+    function loadData() {
+      loadItems();
+      loadImages();
+      loadRelations();
+      updateStats();
+    }
+
+    function loadItems() {
+      const savedItems = localStorage.getItem('itemList');
+      items = savedItems ? JSON.parse(savedItems) : [];
+      displayItems();
+    }
+
+    function loadImages() {
+      const savedImages = localStorage.getItem('imageList');
+      images = savedImages ? JSON.parse(savedImages) : [];
+      displayImages();
+    }
+
+    function loadRelations() {
+      const savedRelations = localStorage.getItem('itemImageRelations');
+      relations = savedRelations ? JSON.parse(savedRelations) : [];
+      displayRelations();
+    }
+
+    function displayItems() {
+      const container = document.getElementById('itemList');
+      
+      if (items.length === 0) {
+        container.innerHTML = '<div class="empty-message">등록된 품목이 없습니다.</div>';
+        return;
+      }
+
+      let html = '';
+      items.forEach((item, index) => {
+        const categoryPath = [item.category1st, item.category2nd, item.category3rd, item.category4th]
+          .filter(cat => cat).join(' > ');
+        
+        html += `
+          <div class="list-item" onclick="selectItem('${item.itemCode}')">
+            <div class="item-info">
+              <div class="item-name">${item.itemName}</div>
+              <div class="item-details">코드: ${item.itemCode} | ${categoryPath}</div>
+            </div>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
+    }
+
+    function displayImages() {
+      const container = document.getElementById('imageList');
+      
+      if (images.length === 0) {
+        container.innerHTML = '<div class="empty-message">등록된 이미지가 없습니다.</div>';
+        return;
+      }
+
+      let html = '';
+      images.forEach((image, index) => {
+        const fileSize = (image.size / 1024).toFixed(1);
+        
+        html += `
+          <div class="list-item" onclick="selectImage('${image.id}')">
+            <img src="${image.base64}" alt="${image.name}">
+            <div class="item-info">
+              <div class="item-name">${image.name}</div>
+              <div class="item-details">${fileSize}KB | ${new Date(image.uploadDate).toLocaleDateString()}</div>
+            </div>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
+    }
+
+    function toggleMultiSelectItems() {
+      multiSelectMode.items = document.getElementById('multiSelectItems').checked;
+      if (!multiSelectMode.items) {
+        clearItemSelection();
+      }
+      updateSelectionDisplay();
+    }
+
+    function toggleMultiSelectImages() {
+      multiSelectMode.images = document.getElementById('multiSelectImages').checked;
+      if (!multiSelectMode.images) {
+        clearImageSelection();
+      }
+      updateSelectionDisplay();
+    }
+
+    function selectItem(itemCode) {
+      const clickedElement = event.currentTarget;
+      const item = items.find(item => item.itemCode === itemCode);
+      
+      if (multiSelectMode.items) {
+        // 다중 선택 모드
+        const index = selectedItems.findIndex(i => i.itemCode === itemCode);
+        if (index > -1) {
+          // 이미 선택된 경우 해제
+          selectedItems.splice(index, 1);
+          clickedElement.classList.remove('multi-selected');
+        } else {
+          // 새로 선택
+          selectedItems.push(item);
+          clickedElement.classList.add('multi-selected');
+        }
+      } else {
+        // 단일 선택 모드
+        document.querySelectorAll('#itemList .list-item').forEach(item => {
+          item.classList.remove('selected');
+        });
+        
+        clickedElement.classList.add('selected');
+        selectedItem = item;
+        selectedItems = [item];
+      }
+      
+      updateSelectionDisplay();
+      updateConnectionButtons();
+    }
+
+    function selectImage(imageId) {
+      const clickedElement = event.currentTarget;
+      const image = images.find(image => image.id === imageId);
+      
+      if (multiSelectMode.images) {
+        // 다중 선택 모드
+        const index = selectedImages.findIndex(i => i.id === imageId);
+        if (index > -1) {
+          // 이미 선택된 경우 해제
+          selectedImages.splice(index, 1);
+          clickedElement.classList.remove('multi-selected');
+        } else {
+          // 새로 선택
+          selectedImages.push(image);
+          clickedElement.classList.add('multi-selected');
+        }
+      } else {
+        // 단일 선택 모드
+        document.querySelectorAll('#imageList .list-item').forEach(item => {
+          item.classList.remove('selected');
+        });
+        
+        clickedElement.classList.add('selected');
+        selectedImage = image;
+        selectedImages = [image];
+      }
+      
+      updateSelectionDisplay();
+      updateConnectionButtons();
+    }
+
+    function updateSelectionDisplay() {
+      if (multiSelectMode.items) {
+        const names = selectedItems.map(item => item.itemName).join(', ');
+        document.getElementById('selectedItemName').textContent = 
+          selectedItems.length > 0 ? `${selectedItems.length}개: ${names.substring(0, 50)}${names.length > 50 ? '...' : ''}` : '없음';
+      } else {
+        document.getElementById('selectedItemName').textContent = selectedItem ? selectedItem.itemName : '없음';
+      }
+      
+      if (multiSelectMode.images) {
+        const names = selectedImages.map(img => img.name).join(', ');
+        document.getElementById('selectedImageName').textContent = 
+          selectedImages.length > 0 ? `${selectedImages.length}개: ${names.substring(0, 50)}${names.length > 50 ? '...' : ''}` : '없음';
+      } else {
+        document.getElementById('selectedImageName').textContent = selectedImage ? selectedImage.name : '없음';
+      }
+    }
+
+    function clearItemSelection() {
+      selectedItems = [];
+      selectedItem = null;
+      document.querySelectorAll('#itemList .list-item').forEach(item => {
+        item.classList.remove('selected', 'multi-selected');
+      });
+    }
+
+    function clearImageSelection() {
+      selectedImages = [];
+      selectedImage = null;
+      document.querySelectorAll('#imageList .list-item').forEach(item => {
+        item.classList.remove('selected', 'multi-selected');
+      });
+    }
+
+    function clearAllSelections() {
+      clearItemSelection();
+      clearImageSelection();
+      document.getElementById('multiSelectItems').checked = false;
+      document.getElementById('multiSelectImages').checked = false;
+      multiSelectMode.items = false;
+      multiSelectMode.images = false;
+      updateSelectionDisplay();
+      updateConnectionButtons();
+    }
+
+    function updateConnectionButtons() {
+      const connectBtn = document.getElementById('connectBtn');
+      const disconnectBtn = document.getElementById('disconnectBtn');
+      
+      const hasSelectedItems = selectedItems.length > 0;
+      const hasSelectedImages = selectedImages.length > 0;
+      const canConnect = hasSelectedItems && hasSelectedImages;
+      
+      connectBtn.disabled = !canConnect;
+      
+      if (canConnect) {
+        const totalConnections = selectedItems.length * selectedImages.length;
+        let existingConnections = 0;
+        
+        selectedItems.forEach(item => {
+          selectedImages.forEach(image => {
+            if (relations.some(rel => rel.itemCode === item.itemCode && rel.imageId === image.id)) {
+              existingConnections++;
+            }
+          });
+        });
+        
+        if (existingConnections === totalConnections) {
+          connectBtn.textContent = '✅ 모두 연결됨';
+          connectBtn.style.background = '#6c757d';
+          disconnectBtn.disabled = false;
+        } else if (existingConnections > 0) {
+          connectBtn.textContent = `➕ 연결하기 (${totalConnections - existingConnections}개 새로 연결)`;
+          connectBtn.style.background = '#28a745';
+          disconnectBtn.disabled = false;
+        } else {
+          connectBtn.textContent = `➕ 연결하기 (${totalConnections}개)`;
+          connectBtn.style.background = '#28a745';
+          disconnectBtn.disabled = true;
+        }
+      } else {
+        connectBtn.textContent = '➕ 연결하기';
+        connectBtn.style.background = '#28a745';
+        disconnectBtn.disabled = true;
+      }
+    }
+
+    function connectItems() {
+      if (selectedItems.length === 0 || selectedImages.length === 0) {
+        alert('품목과 이미지를 모두 선택해주세요.');
+        return;
+      }
+
+      let newConnections = 0;
+      let existingConnections = 0;
+      const newRelations = [];
+
+      selectedItems.forEach(item => {
+        selectedImages.forEach(image => {
+          const existingRelation = relations.find(rel => 
+            rel.itemCode === item.itemCode && rel.imageId === image.id
+          );
+
+          if (existingRelation) {
+            existingConnections++;
+          } else {
+            const newRelation = {
+              id: Date.now() + '_' + Math.random().toString(36).substr(2, 9) + '_' + newConnections,
+              itemCode: item.itemCode,
+              imageId: image.id,
+              createdAt: new Date().toISOString()
+            };
+            newRelations.push(newRelation);
+            relations.push(newRelation);
+            newConnections++;
+          }
+        });
+      });
+
+      localStorage.setItem('itemImageRelations', JSON.stringify(relations));
+      
+      displayRelations();
+      updateConnectionButtons();
+      updateStats();
+      
+      if (newConnections > 0 && existingConnections > 0) {
+        alert(`${newConnections}개의 새로운 연결이 생성되었습니다.\n${existingConnections}개는 이미 연결되어 있었습니다.`);
+      } else if (newConnections > 0) {
+        alert(`${newConnections}개의 연결이 생성되었습니다.`);
+      } else {
+        alert('선택한 모든 항목이 이미 연결되어 있습니다.');
+      }
+    }
+
+    function disconnectItems() {
+      if (selectedItems.length === 0 || selectedImages.length === 0) {
+        alert('품목과 이미지를 모두 선택해주세요.');
+        return;
+      }
+
+      let disconnectedCount = 0;
+      let notConnectedCount = 0;
+      const toRemove = [];
+
+      selectedItems.forEach(item => {
+        selectedImages.forEach(image => {
+          const relationIndex = relations.findIndex(rel => 
+            rel.itemCode === item.itemCode && rel.imageId === image.id
+          );
+
+          if (relationIndex !== -1) {
+            toRemove.push(relationIndex);
+            disconnectedCount++;
+          } else {
+            notConnectedCount++;
+          }
+        });
+      });
+
+      if (toRemove.length === 0) {
+        alert('선택한 항목들 중 연결된 것이 없습니다.');
+        return;
+      }
+
+      if (confirm(`${disconnectedCount}개의 연결을 해제하시겠습니까?`)) {
+        // 인덱스 역순으로 정렬하여 삭제 (배열 인덱스 변화 방지)
+        toRemove.sort((a, b) => b - a).forEach(index => {
+          relations.splice(index, 1);
+        });
+
+        localStorage.setItem('itemImageRelations', JSON.stringify(relations));
+        
+        displayRelations();
+        updateConnectionButtons();
+        updateStats();
+        
+        if (notConnectedCount > 0) {
+          alert(`${disconnectedCount}개의 연결이 해제되었습니다.\n${notConnectedCount}개는 연결되지 않은 상태였습니다.`);
+        } else {
+          alert(`${disconnectedCount}개의 연결이 해제되었습니다.`);
+        }
+      }
+    }
+
+    function displayRelations() {
+      const container = document.getElementById('relationsList');
+      
+      if (relations.length === 0) {
+        container.innerHTML = '<div class="empty-message">등록된 연결이 없습니다.</div>';
+        return;
+      }
+
+      let html = '';
+      relations.forEach((relation, index) => {
+        const item = items.find(i => i.itemCode === relation.itemCode);
+        const image = images.find(img => img.id === relation.imageId);
+        
+        if (item && image) {
+          html += `
+            <div class="relation-item">
+              <img src="${image.base64}" class="relation-image" alt="${image.name}">
+              <div class="relation-arrow">↔️</div>
+              <div class="relation-info">
+                <div><strong>${item.itemName}</strong> (${item.itemCode})</div>
+                <div style="font-size: 12px; color: #666;">
+                  이미지: ${image.name} | 연결일: ${new Date(relation.createdAt).toLocaleDateString()}
+                </div>
+              </div>
+              <button class="btn btn-danger btn-small" onclick="deleteRelation('${relation.id}')">
+                삭제
+              </button>
+            </div>
+          `;
+        }
+      });
+      
+      container.innerHTML = html;
+    }
+
+    function deleteRelation(relationId) {
+      if (confirm('정말로 이 연결을 삭제하시겠습니까?')) {
+        relations = relations.filter(rel => rel.id !== relationId);
+        localStorage.setItem('itemImageRelations', JSON.stringify(relations));
+        
+        displayRelations();
+        updateConnectionButtons();
+        updateStats();
+        
+        alert('연결이 삭제되었습니다.');
+      }
+    }
+
+    function filterItems() {
+      const searchTerm = document.getElementById('itemSearch').value.toLowerCase();
+      const filteredItems = items.filter(item => 
+        item.itemName.toLowerCase().includes(searchTerm) ||
+        item.itemCode.toLowerCase().includes(searchTerm)
+      );
+      
+      displayFilteredItems(filteredItems);
+    }
+
+    function filterImages() {
+      const searchTerm = document.getElementById('imageSearch').value.toLowerCase();
+      const filteredImages = images.filter(image => 
+        image.name.toLowerCase().includes(searchTerm)
+      );
+      
+      displayFilteredImages(filteredImages);
+    }
+
+    function displayFilteredItems(filteredItems) {
+      const container = document.getElementById('itemList');
+      
+      if (filteredItems.length === 0) {
+        container.innerHTML = '<div class="empty-message">검색 결과가 없습니다.</div>';
+        return;
+      }
+
+      let html = '';
+      filteredItems.forEach((item, index) => {
+        const categoryPath = [item.category1st, item.category2nd, item.category3rd, item.category4th]
+          .filter(cat => cat).join(' > ');
+        
+        html += `
+          <div class="list-item" onclick="selectItem('${item.itemCode}')">
+            <div class="item-info">
+              <div class="item-name">${item.itemName}</div>
+              <div class="item-details">코드: ${item.itemCode} | ${categoryPath}</div>
+            </div>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
+    }
+
+    function displayFilteredImages(filteredImages) {
+      const container = document.getElementById('imageList');
+      
+      if (filteredImages.length === 0) {
+        container.innerHTML = '<div class="empty-message">검색 결과가 없습니다.</div>';
+        return;
+      }
+
+      let html = '';
+      filteredImages.forEach((image, index) => {
+        const fileSize = (image.size / 1024).toFixed(1);
+        
+        html += `
+          <div class="list-item" onclick="selectImage('${image.id}')">
+            <img src="${image.base64}" alt="${image.name}">
+            <div class="item-info">
+              <div class="item-name">${image.name}</div>
+              <div class="item-details">${fileSize}KB | ${new Date(image.uploadDate).toLocaleDateString()}</div>
+            </div>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
+    }
+
+    function updateStats() {
+      const totalRelations = relations.length;
+      const connectedItems = new Set(relations.map(rel => rel.itemCode)).size;
+      const connectedImages = new Set(relations.map(rel => rel.imageId)).size;
+      
+      document.getElementById('totalRelations').textContent = totalRelations;
+      document.getElementById('connectedItems').textContent = connectedItems;
+      document.getElementById('connectedImages').textContent = connectedImages;
+    }
+
+    function exportRelations() {
+      if (relations.length === 0) {
+        alert('내보낼 연결 데이터가 없습니다.');
+        return;
+      }
+      
+      const exportData = relations.map(rel => {
+        const item = items.find(i => i.itemCode === rel.itemCode);
+        const image = images.find(img => img.id === rel.imageId);
+        
+        return {
+          relationId: rel.id,
+          itemCode: rel.itemCode,
+          itemName: item ? item.itemName : 'Unknown',
+          imageId: rel.imageId,
+          imageName: image ? image.name : 'Unknown',
+          createdAt: rel.createdAt
+        };
+      });
+      
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataBlob = new Blob([dataStr], {type: 'application/json'});
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'item_image_relations_' + new Date().toISOString().split('T')[0] + '.json';
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>

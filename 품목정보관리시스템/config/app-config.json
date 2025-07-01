@@ -1,0 +1,116 @@
+{
+  "system": {
+    "name": "품목정보관리 시스템",
+    "version": "1.0.0", 
+    "description": "품목 등록, 이미지 관리 및 다대다 관계 연결 시스템",
+    "author": "개발팀",
+    "lastUpdate": "2025-07-01"
+  },
+  "features": {
+    "itemManagement": {
+      "enabled": true,
+      "maxItems": 50000,
+      "categorization": true,
+      "sampleDataGeneration": true
+    },
+    "imageManagement": {
+      "enabled": true,
+      "maxImages": 10000,
+      "supportedFormats": ["image/jpeg", "image/png", "image/gif", "image/webp"],
+      "maxFileSize": "5MB",
+      "dragAndDrop": true
+    },
+    "relationManagement": {
+      "enabled": true,
+      "multipleSelection": true,
+      "bulkOperations": true,
+      "relationshipType": "many-to-many"
+    }
+  },
+  "storage": {
+    "type": "localStorage",
+    "keys": {
+      "items": "itemList",
+      "images": "imageList", 
+      "relations": "itemImageRelations",
+      "categories": "categories"
+    },
+    "maxSize": "100MB",
+    "autoCleanup": false
+  },
+  "ui": {
+    "theme": "default",
+    "language": "ko",
+    "responsive": true,
+    "gridView": true,
+    "thumbnailSize": "200px"
+  },
+  "integration": {
+    "categorySystem": {
+      "enabled": true,
+      "source": "기준정보관리시스템",
+      "sharedKeys": ["categories"],
+      "autoSync": false
+    },
+    "itemRegistrationSystem": {
+      "enabled": true,
+      "autoComplete": true,
+      "sharedKeys": ["itemList"]
+    }
+  },
+  "image": {
+    "encoding": "base64",
+    "compression": false,
+    "thumbnail": {
+      "enabled": true,
+      "width": 200,
+      "height": 200,
+      "quality": 0.8
+    },
+    "preview": {
+      "modal": true,
+      "zoomable": false
+    }
+  },
+  "performance": {
+    "virtualScrolling": true,
+    "lazyImageLoading": true,
+    "debounceSearch": 300,
+    "maxConcurrentUploads": 10
+  },
+  "validation": {
+    "itemCode": {
+      "required": true,
+      "unique": true,
+      "pattern": "^[A-Z0-9]+$"
+    },
+    "itemName": {
+      "required": true,
+      "maxLength": 100
+    },
+    "image": {
+      "mimeTypeCheck": true,
+      "virusScan": false
+    }
+  },
+  "sampleData": {
+    "items": [
+      {
+        "itemCode": "P001",
+        "itemName": "A4 복사용지",
+        "itemSpec": "80g, 500매",
+        "itemUnit": "박스",
+        "itemPrice": 4000,
+        "itemVendor": "(주)엔케이"
+      },
+      {
+        "itemCode": "P002",
+        "itemName": "볼펜", 
+        "itemSpec": "흑색 0.7mm",
+        "itemUnit": "자루",
+        "itemPrice": 500,
+        "itemVendor": "(주)스마트솔루션"
+      }
+    ]
+  }
+}

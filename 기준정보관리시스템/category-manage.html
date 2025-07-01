@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>카테고리 관리</title>
+  <style>
+    body { font-family: '맑은 고딕', Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; padding: 20px; border-radius: 10px 10px 0 0; }
+    .header h1 { margin: 0; }
+    .content { padding: 20px; }
+    .btn-group { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+    .btn-primary { background: #007bff; color: white; }
+    .btn-primary:hover { background: #0056b3; }
+    .btn-success { background: #28a745; color: white; }
+    .btn-success:hover { background: #1e7e34; }
+    .btn-warning { background: #ffc107; color: #212529; }
+    .btn-warning:hover { background: #e0a800; }
+    .search-container { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
+    .search-input { padding: 10px; border: 1px solid #ddd; border-radius: 5px; flex: 1; }
+    .category-tree { border: 1px solid #ddd; border-radius: 5px; max-height: 600px; overflow-y: auto; }
+    .tree-node { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; position: relative; }
+    .tree-node:hover { background: #f8f9fa; }
+    .tree-node.level-1 { font-weight: bold; background: #e3f2fd; }
+    .tree-node.level-2 { margin-left: 20px; background: #f3e5f5; }
+    .tree-node.level-3 { margin-left: 40px; background: #e8f5e8; }
+    .tree-node.level-4 { margin-left: 60px; background: #fff3e0; }
+    .tree-node.expanded > .tree-children { display: block; }
+    .tree-node.collapsed > .tree-children { display: none; }
+    .tree-children { display: none; }
+    .expand-icon { display: inline-block; width: 16px; text-align: center; margin-right: 8px; }
+    .stats { background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+    .stats-item { display: inline-block; margin-right: 20px; }
+    .stats-number { font-weight: bold; color: #007bff; font-size: 18px; }
+    .loading { text-align: center; padding: 40px; color: #666; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>카테고리 관리</h1>
+      <p>계층형 카테고리 구조 관리 및 조회</p>
+    </div>
+    
+    <div class="content">
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="triggerFileInput()">📁 Excel 파일 업로드</button>
+        <button class="btn btn-primary" onclick="loadCategories()">🔄 기본 경로에서 불러오기</button>
+        <button class="btn btn-success" onclick="exportCategories()">📤 카테고리 내보내기</button>
+        <button class="btn btn-warning" onclick="showStats()">📊 통계 보기</button>
+        <a href="index.html" class="btn" style="background: #6c757d; color: white;">🏠 메인으로</a>
+      </div>
+      
+      <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display: none;" onchange="handleFileUpload(event)">
+      
+      <div class="stats" id="statsContainer">
+        <div class="stats-item">총 카테고리: <span class="stats-number" id="totalCount">0</span>개</div>
+        <div class="stats-item">1차 카테고리: <span class="stats-number" id="level1Count">0</span>개</div>
+        <div class="stats-item">2차 카테고리: <span class="stats-number" id="level2Count">0</span>개</div>
+        <div class="stats-item">3차 카테고리: <span class="stats-number" id="level3Count">0</span>개</div>
+        <div class="stats-item">4차 카테고리: <span class="stats-number" id="level4Count">0</span>개</div>
+      </div>
+      
+      <div class="search-container">
+        <input type="text" id="searchInput" class="search-input" placeholder="카테고리 검색..." onkeyup="searchCategories()">
+        <button class="btn btn-primary" onclick="searchCategories()">🔍 검색</button>
+        <button class="btn" onclick="clearSearch()">✖️ 초기화</button>
+      </div>
+      
+      <div id="categoryContainer">
+        <div class="loading">카테고리를 불러오려면 '카테고리 불러오기' 버튼을 클릭하세요.</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
+  <script>
+    let categories = [];
+    let categoryTree = {};
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const savedCategories = localStorage.getItem('categories');
+      if (savedCategories) {
+        categories = JSON.parse(savedCategories);
+        buildCategoryTree();
+        displayCategories();
+        updateStats();
+      }
+    });
+
+    function triggerFileInput() {
+      document.getElementById('excelFileInput').click();
+    }
+
+    async function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (!file.name.match(/\.(xlsx|xls)$/)) {
+        alert('Excel 파일(.xlsx, .xls)만 업로드할 수 있습니다.');
+        return;
+      }
+
+      try {
+        document.getElementById('categoryContainer').innerHTML = '<div class="loading">Excel 파일을 분석중...</div>';
+        
+        const arrayBuffer = await file.arrayBuffer();
+        await processCategoryData(arrayBuffer);
+        
+        // 파일 입력 초기화
+        event.target.value = '';
+      } catch (error) {
+        console.error('파일 업로드 실패:', error);
+        alert('파일 업로드에 실패했습니다: ' + error.message);
+        document.getElementById('categoryContainer').innerHTML = '<div class="loading">파일 업로드에 실패했습니다.</div>';
+      }
+    }
+
+    async function loadCategories() {
+      try {
+        document.getElementById('categoryContainer').innerHTML = '<div class="loading">카테고리 데이터를 로딩중...</div>';
+        
+        const response = await fetch('../카테고리.xlsx');
+        if (!response.ok) {
+          throw new Error('카테고리.xlsx 파일을 찾을 수 없습니다. 파일 업로드를 사용해주세요.');
+        }
+        
+        const arrayBuffer = await response.arrayBuffer();
+        await processCategoryData(arrayBuffer);
+      } catch (error) {
+        console.error('카테고리 로드 실패:', error);
+        alert('기본 경로에서 파일을 찾을 수 없습니다. "Excel 파일 업로드" 버튼을 사용해서 카테고리.xlsx 파일을 직접 업로드해주세요.');
+        document.getElementById('categoryContainer').innerHTML = '<div class="loading">카테고리 로드에 실패했습니다. 파일 업로드를 사용해주세요.</div>';
+      }
+    }
+
+    async function processCategoryData(arrayBuffer) {
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(arrayBuffer);
+      
+      const worksheet = workbook.getWorksheet(1);
+      categories = [];
+      
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber > 1) {
+          const rowData = row.values;
+          if (rowData[2]) { // 1차 카테고리가 있는 경우만
+            categories.push({
+              groupId: rowData[1] || rowNumber - 1,
+              category1st: rowData[2] || '',
+              category2nd: rowData[3] || '',
+              category3rd: rowData[4] || '',
+              category4th: rowData[5] || ''
+            });
+          }
+        }
+      });
+      
+      localStorage.setItem('categories', JSON.stringify(categories));
+      buildCategoryTree();
+      displayCategories();
+      updateStats();
+      
+      alert(`카테고리 ${categories.length}개를 성공적으로 불러왔습니다.`);
+    }
+
+    function buildCategoryTree() {
+      categoryTree = {};
+      
+      categories.forEach(cat => {
+        if (!categoryTree[cat.category1st]) {
+          categoryTree[cat.category1st] = {};
+        }
+        
+        if (cat.category2nd) {
+          if (!categoryTree[cat.category1st][cat.category2nd]) {
+            categoryTree[cat.category1st][cat.category2nd] = {};
+          }
+          
+          if (cat.category3rd) {
+            if (!categoryTree[cat.category1st][cat.category2nd][cat.category3rd]) {
+              categoryTree[cat.category1st][cat.category2nd][cat.category3rd] = {};
+            }
+            
+            if (cat.category4th) {
+              categoryTree[cat.category1st][cat.category2nd][cat.category3rd][cat.category4th] = true;
+            }
+          }
+        }
+      });
+    }
+
+    function displayCategories() {
+      const container = document.getElementById('categoryContainer');
+      if (Object.keys(categoryTree).length === 0) {
+        container.innerHTML = '<div class="loading">표시할 카테고리가 없습니다.</div>';
+        return;
+      }
+
+      let html = '<div class="category-tree">';
+      
+      Object.keys(categoryTree).forEach(level1 => {
+        const level1Id = 'cat1_' + level1.replace(/\s+/g, '_');
+        const hasChildren = Object.keys(categoryTree[level1]).length > 0;
+        
+        html += `
+          <div class="tree-node level-1 ${hasChildren ? 'collapsed' : ''}" onclick="toggleNode('${level1Id}')">
+            <span class="expand-icon">${hasChildren ? '▶' : '●'}</span>
+            <strong>${level1}</strong>
+          </div>
+        `;
+        
+        if (hasChildren) {
+          html += `<div class="tree-children" id="${level1Id}">`;
+          
+          Object.keys(categoryTree[level1]).forEach(level2 => {
+            const level2Id = 'cat2_' + level1.replace(/\s+/g, '_') + '_' + level2.replace(/\s+/g, '_');
+            const hasChildren2 = Object.keys(categoryTree[level1][level2]).length > 0;
+            
+            html += `
+              <div class="tree-node level-2 ${hasChildren2 ? 'collapsed' : ''}" onclick="toggleNode('${level2Id}')">
+                <span class="expand-icon">${hasChildren2 ? '▶' : '●'}</span>
+                ${level2}
+              </div>
+            `;
+            
+            if (hasChildren2) {
+              html += `<div class="tree-children" id="${level2Id}">`;
+              
+              Object.keys(categoryTree[level1][level2]).forEach(level3 => {
+                const level3Id = 'cat3_' + level1.replace(/\s+/g, '_') + '_' + level2.replace(/\s+/g, '_') + '_' + level3.replace(/\s+/g, '_');
+                const hasChildren3 = Object.keys(categoryTree[level1][level2][level3]).length > 0;
+                
+                html += `
+                  <div class="tree-node level-3 ${hasChildren3 ? 'collapsed' : ''}" onclick="toggleNode('${level3Id}')">
+                    <span class="expand-icon">${hasChildren3 ? '▶' : '●'}</span>
+                    ${level3}
+                  </div>
+                `;
+                
+                if (hasChildren3) {
+                  html += `<div class="tree-children" id="${level3Id}">`;
+                  
+                  Object.keys(categoryTree[level1][level2][level3]).forEach(level4 => {
+                    html += `
+                      <div class="tree-node level-4">
+                        <span class="expand-icon">●</span>
+                        ${level4}
+                      </div>
+                    `;
+                  });
+                  
+                  html += '</div>';
+                }
+              });
+              
+              html += '</div>';
+            }
+          });
+          
+          html += '</div>';
+        }
+      });
+      
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    function toggleNode(nodeId) {
+      event.stopPropagation();
+      const node = document.getElementById(nodeId);
+      const parentNode = node.previousElementSibling;
+      
+      if (node.style.display === 'none' || !node.style.display) {
+        node.style.display = 'block';
+        parentNode.classList.remove('collapsed');
+        parentNode.classList.add('expanded');
+        parentNode.querySelector('.expand-icon').textContent = '▼';
+      } else {
+        node.style.display = 'none';
+        parentNode.classList.remove('expanded');
+        parentNode.classList.add('collapsed');
+        parentNode.querySelector('.expand-icon').textContent = '▶';
+      }
+    }
+
+    function updateStats() {
+      const level1Set = new Set();
+      const level2Set = new Set();
+      const level3Set = new Set();
+      const level4Set = new Set();
+      
+      categories.forEach(cat => {
+        if (cat.category1st) level1Set.add(cat.category1st);
+        if (cat.category2nd) level2Set.add(cat.category1st + '>' + cat.category2nd);
+        if (cat.category3rd) level3Set.add(cat.category1st + '>' + cat.category2nd + '>' + cat.category3rd);
+        if (cat.category4th) level4Set.add(cat.category1st + '>' + cat.category2nd + '>' + cat.category3rd + '>' + cat.category4th);
+      });
+      
+      document.getElementById('totalCount').textContent = categories.length;
+      document.getElementById('level1Count').textContent = level1Set.size;
+      document.getElementById('level2Count').textContent = level2Set.size;
+      document.getElementById('level3Count').textContent = level3Set.size;
+      document.getElementById('level4Count').textContent = level4Set.size;
+    }
+
+    function searchCategories() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+      if (!searchTerm) {
+        displayCategories();
+        return;
+      }
+      
+      const filteredCategories = categories.filter(cat => 
+        cat.category1st.toLowerCase().includes(searchTerm) ||
+        cat.category2nd.toLowerCase().includes(searchTerm) ||
+        cat.category3rd.toLowerCase().includes(searchTerm) ||
+        cat.category4th.toLowerCase().includes(searchTerm)
+      );
+      
+      const container = document.getElementById('categoryContainer');
+      if (filteredCategories.length === 0) {
+        container.innerHTML = '<div class="loading">검색 결과가 없습니다.</div>';
+        return;
+      }
+      
+      let html = '<div class="category-tree">';
+      filteredCategories.forEach(cat => {
+        html += `
+          <div class="tree-node level-1">
+            <span class="expand-icon">🔍</span>
+            <strong>${cat.category1st}</strong>
+            ${cat.category2nd ? ' > ' + cat.category2nd : ''}
+            ${cat.category3rd ? ' > ' + cat.category3rd : ''}
+            ${cat.category4th ? ' > ' + cat.category4th : ''}
+          </div>
+        `;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      displayCategories();
+    }
+
+    function exportCategories() {
+      if (categories.length === 0) {
+        alert('내보낼 카테고리 데이터가 없습니다.');
+        return;
+      }
+      
+      const dataStr = JSON.stringify(categories, null, 2);
+      const dataBlob = new Blob([dataStr], {type: 'application/json'});
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'categories_' + new Date().toISOString().split('T')[0] + '.json';
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function showStats() {
+      updateStats();
+      alert(`카테고리 통계:
+      
+총 카테고리: ${categories.length}개
+1차 카테고리: ${document.getElementById('level1Count').textContent}개
+2차 카테고리: ${document.getElementById('level2Count').textContent}개  
+3차 카테고리: ${document.getElementById('level3Count').textContent}개
+4차 카테고리: ${document.getElementById('level4Count').textContent}개`);
+    }
+  </script>
+</body>
+</html>

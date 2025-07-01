@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>품목 관리</title>
+  <style>
+    body { font-family: '맑은 고딕', Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #E91E63, #F06292); color: white; padding: 20px; border-radius: 10px 10px 0 0; }
+    .header h1 { margin: 0; }
+    .content { padding: 20px; }
+    .btn-group { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+    .btn-primary { background: #007bff; color: white; }
+    .btn-primary:hover { background: #0056b3; }
+    .btn-success { background: #28a745; color: white; }
+    .btn-success:hover { background: #1e7e34; }
+    .form-container { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+    .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+    .form-group { flex: 1; min-width: 200px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+    .form-control { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+    .form-control:focus { border-color: #007bff; outline: none; }
+    select.form-control { height: 36px; }
+    .table-container { overflow-x: auto; }
+    .table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    .table th, .table td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+    .table th { background: #f8f9fa; font-weight: bold; position: sticky; top: 0; }
+    .table tbody tr:hover { background: #f8f9fa; }
+    .category-path { font-size: 12px; color: #666; }
+    .btn-small { padding: 5px 10px; font-size: 12px; }
+    .btn-danger { background: #dc3545; color: white; }
+    .btn-danger:hover { background: #c82333; }
+    .search-container { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .search-input { padding: 10px; border: 1px solid #ddd; border-radius: 5px; flex: 1; min-width: 200px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>품목 관리</h1>
+      <p>품목 등록, 수정, 삭제 및 카테고리 연결 관리</p>
+    </div>
+    
+    <div class="content">
+      <div class="btn-group">
+        <button class="btn btn-success" onclick="showAddForm()">➕ 품목 추가</button>
+        <button class="btn btn-primary" onclick="loadCategories()">📁 카테고리 불러오기</button>
+        <button class="btn btn-info" onclick="refreshCategories()">🔄 카테고리 새로고침</button>
+        <button class="btn btn-warning" onclick="generateSampleItems()">🎲 샘플 품목 생성</button>
+        <a href="index.html" class="btn" style="background: #6c757d; color: white;">🏠 메인으로</a>
+      </div>
+      
+      <div class="form-container" id="itemForm" style="display: none;">
+        <h3 id="formTitle">품목 추가</h3>
+        <form id="itemFormElement">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="itemCode">품목코드 *</label>
+              <input type="text" id="itemCode" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="itemName">품목명 *</label>
+              <input type="text" id="itemName" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="itemSpec">규격</label>
+              <input type="text" id="itemSpec" class="form-control">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="category1">1차 카테고리</label>
+              <select id="category1" class="form-control" onchange="updateCategory2()">
+                <option value="">선택하세요</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="category2">2차 카테고리</label>
+              <select id="category2" class="form-control" onchange="updateCategory3()">
+                <option value="">선택하세요</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="category3">3차 카테고리</label>
+              <select id="category3" class="form-control" onchange="updateCategory4()">
+                <option value="">선택하세요</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="category4">4차 카테고리</label>
+              <select id="category4" class="form-control">
+                <option value="">선택하세요</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="itemUnit">단위</label>
+              <input type="text" id="itemUnit" class="form-control" placeholder="개, 박스, kg 등">
+            </div>
+            <div class="form-group">
+              <label for="itemPrice">단가</label>
+              <input type="number" id="itemPrice" class="form-control" min="0">
+            </div>
+            <div class="form-group">
+              <label for="itemVendor">거래처</label>
+              <input type="text" id="itemVendor" class="form-control">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="itemDescription">설명</label>
+              <textarea id="itemDescription" class="form-control" rows="3"></textarea>
+            </div>
+          </div>
+          
+          <div class="btn-group">
+            <button type="submit" class="btn btn-success">💾 저장</button>
+            <button type="button" class="btn btn-secondary" onclick="hideForm()">❌ 취소</button>
+          </div>
+        </form>
+      </div>
+      
+      <div class="search-container">
+        <input type="text" id="searchInput" class="search-input" placeholder="품목명, 품목코드, 카테고리로 검색...">
+        <button class="btn btn-primary" onclick="searchItems()">🔍 검색</button>
+        <button class="btn" onclick="clearSearch()">✖️ 초기화</button>
+      </div>
+      
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>품목코드</th>
+              <th>품목명</th>
+              <th>규격</th>
+              <th>카테고리</th>
+              <th>단위</th>
+              <th>단가</th>
+              <th>거래처</th>
+              <th>등록일</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody id="itemTableBody">
+            <tr>
+              <td colspan="9" style="text-align: center; padding: 40px; color: #666;">
+                등록된 품목이 없습니다.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let items = [];
+    let categories = [];
+    let editingIndex = -1;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      loadItems();
+      loadCategories();
+      updateCategory1Options();
+      
+      document.getElementById('itemFormElement').addEventListener('submit', function(e) {
+        e.preventDefault();
+        saveItem();
+      });
+    });
+
+    function loadItems() {
+      const savedItems = localStorage.getItem('itemList');
+      if (savedItems) {
+        items = JSON.parse(savedItems);
+        displayItems();
+      }
+    }
+
+    function loadCategories() {
+      const savedCategories = localStorage.getItem('categories');
+      if (savedCategories) {
+        categories = JSON.parse(savedCategories);
+        updateCategory1Options();
+        alert(`${categories.length}개의 카테고리가 로드되었습니다.`);
+      } else {
+        alert('저장된 카테고리가 없습니다. 기준정보관리 시스템에서 카테고리를 먼저 불러와주세요.');
+        if (confirm('기준정보관리 시스템으로 이동하시겠습니까?')) {
+          window.open('../기준정보관리시스템/category-manage.html', '_blank');
+        }
+      }
+    }
+
+    function refreshCategories() {
+      const savedCategories = localStorage.getItem('categories');
+      if (savedCategories) {
+        categories = JSON.parse(savedCategories);
+        updateCategory1Options();
+        
+        // 기존 폼이 열려있다면 카테고리 셀렉트 박스 업데이트
+        if (document.getElementById('itemForm').style.display !== 'none') {
+          updateCategory2();
+          updateCategory3();
+          updateCategory4();
+        }
+        
+        alert(`카테고리가 새로고침되었습니다. (${categories.length}개)`);
+      } else {
+        alert('저장된 카테고리가 없습니다.');
+      }
+    }
+
+    function updateCategory1Options() {
+      const category1Select = document.getElementById('category1');
+      const uniqueCategories = [...new Set(categories.map(cat => cat.category1st))].filter(cat => cat);
+      
+      category1Select.innerHTML = '<option value="">선택하세요</option>';
+      uniqueCategories.forEach(cat => {
+        category1Select.innerHTML += `<option value="${cat}">${cat}</option>`;
+      });
+    }
+
+    function updateCategory2() {
+      const category1 = document.getElementById('category1').value;
+      const category2Select = document.getElementById('category2');
+      
+      category2Select.innerHTML = '<option value="">선택하세요</option>';
+      document.getElementById('category3').innerHTML = '<option value="">선택하세요</option>';
+      document.getElementById('category4').innerHTML = '<option value="">선택하세요</option>';
+      
+      if (category1) {
+        const filteredCategories = categories.filter(cat => cat.category1st === category1);
+        const uniqueCategories = [...new Set(filteredCategories.map(cat => cat.category2nd))].filter(cat => cat);
+        
+        uniqueCategories.forEach(cat => {
+          category2Select.innerHTML += `<option value="${cat}">${cat}</option>`;
+        });
+      }
+    }
+
+    function updateCategory3() {
+      const category1 = document.getElementById('category1').value;
+      const category2 = document.getElementById('category2').value;
+      const category3Select = document.getElementById('category3');
+      
+      category3Select.innerHTML = '<option value="">선택하세요</option>';
+      document.getElementById('category4').innerHTML = '<option value="">선택하세요</option>';
+      
+      if (category1 && category2) {
+        const filteredCategories = categories.filter(cat => 
+          cat.category1st === category1 && cat.category2nd === category2
+        );
+        const uniqueCategories = [...new Set(filteredCategories.map(cat => cat.category3rd))].filter(cat => cat);
+        
+        uniqueCategories.forEach(cat => {
+          category3Select.innerHTML += `<option value="${cat}">${cat}</option>`;
+        });
+      }
+    }
+
+    function updateCategory4() {
+      const category1 = document.getElementById('category1').value;
+      const category2 = document.getElementById('category2').value;
+      const category3 = document.getElementById('category3').value;
+      const category4Select = document.getElementById('category4');
+      
+      category4Select.innerHTML = '<option value="">선택하세요</option>';
+      
+      if (category1 && category2 && category3) {
+        const filteredCategories = categories.filter(cat => 
+          cat.category1st === category1 && cat.category2nd === category2 && cat.category3rd === category3
+        );
+        const uniqueCategories = [...new Set(filteredCategories.map(cat => cat.category4th))].filter(cat => cat);
+        
+        uniqueCategories.forEach(cat => {
+          category4Select.innerHTML += `<option value="${cat}">${cat}</option>`;
+        });
+      }
+    }
+
+    function showAddForm() {
+      document.getElementById('formTitle').textContent = '품목 추가';
+      document.getElementById('itemForm').style.display = 'block';
+      clearForm();
+      editingIndex = -1;
+    }
+
+    function hideForm() {
+      document.getElementById('itemForm').style.display = 'none';
+      clearForm();
+      editingIndex = -1;
+    }
+
+    function clearForm() {
+      document.getElementById('itemFormElement').reset();
+      document.getElementById('category2').innerHTML = '<option value="">선택하세요</option>';
+      document.getElementById('category3').innerHTML = '<option value="">선택하세요</option>';
+      document.getElementById('category4').innerHTML = '<option value="">선택하세요</option>';
+    }
+
+    function saveItem() {
+      const itemData = {
+        itemCode: document.getElementById('itemCode').value.trim(),
+        itemName: document.getElementById('itemName').value.trim(),
+        itemSpec: document.getElementById('itemSpec').value.trim(),
+        category1st: document.getElementById('category1').value,
+        category2nd: document.getElementById('category2').value,
+        category3rd: document.getElementById('category3').value,
+        category4th: document.getElementById('category4').value,
+        itemUnit: document.getElementById('itemUnit').value.trim(),
+        itemPrice: document.getElementById('itemPrice').value || 0,
+        itemVendor: document.getElementById('itemVendor').value.trim(),
+        itemDescription: document.getElementById('itemDescription').value.trim(),
+        createdAt: editingIndex === -1 ? new Date().toISOString() : items[editingIndex].createdAt,
+        updatedAt: new Date().toISOString()
+      };
+
+      if (!itemData.itemCode || !itemData.itemName) {
+        alert('품목코드와 품목명은 필수 입력 항목입니다.');
+        return;
+      }
+
+      const existingIndex = items.findIndex(item => 
+        item.itemCode === itemData.itemCode && editingIndex !== items.indexOf(item)
+      );
+      
+      if (existingIndex !== -1) {
+        alert('이미 존재하는 품목코드입니다.');
+        return;
+      }
+
+      if (editingIndex === -1) {
+        items.push(itemData);
+      } else {
+        items[editingIndex] = itemData;
+      }
+
+      localStorage.setItem('itemList', JSON.stringify(items));
+      displayItems();
+      hideForm();
+      alert(editingIndex === -1 ? '품목이 추가되었습니다.' : '품목이 수정되었습니다.');
+    }
+
+    function displayItems() {
+      const tbody = document.getElementById('itemTableBody');
+      
+      if (items.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" style="text-align: center; padding: 40px; color: #666;">
+              등록된 품목이 없습니다.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      let html = '';
+      items.forEach((item, index) => {
+        const categoryPath = [item.category1st, item.category2nd, item.category3rd, item.category4th]
+          .filter(cat => cat).join(' > ');
+        
+        html += `
+          <tr>
+            <td>${item.itemCode}</td>
+            <td><strong>${item.itemName}</strong></td>
+            <td>${item.itemSpec}</td>
+            <td>
+              <div>${categoryPath}</div>
+            </td>
+            <td>${item.itemUnit}</td>
+            <td>${item.itemPrice ? Number(item.itemPrice).toLocaleString() + '원' : ''}</td>
+            <td>${item.itemVendor}</td>
+            <td>${new Date(item.createdAt).toLocaleDateString()}</td>
+            <td>
+              <button class="btn btn-primary btn-small" onclick="editItem(${index})">수정</button>
+              <button class="btn btn-danger btn-small" onclick="deleteItem(${index})">삭제</button>
+            </td>
+          </tr>
+        `;
+      });
+      
+      tbody.innerHTML = html;
+    }
+
+    function editItem(index) {
+      const item = items[index];
+      editingIndex = index;
+      
+      document.getElementById('formTitle').textContent = '품목 수정';
+      document.getElementById('itemCode').value = item.itemCode;
+      document.getElementById('itemName').value = item.itemName;
+      document.getElementById('itemSpec').value = item.itemSpec;
+      document.getElementById('itemUnit').value = item.itemUnit;
+      document.getElementById('itemPrice').value = item.itemPrice;
+      document.getElementById('itemVendor').value = item.itemVendor;
+      document.getElementById('itemDescription').value = item.itemDescription;
+      
+      document.getElementById('category1').value = item.category1st;
+      updateCategory2();
+      setTimeout(() => {
+        document.getElementById('category2').value = item.category2nd;
+        updateCategory3();
+        setTimeout(() => {
+          document.getElementById('category3').value = item.category3rd;
+          updateCategory4();
+          setTimeout(() => {
+            document.getElementById('category4').value = item.category4th;
+          }, 100);
+        }, 100);
+      }, 100);
+      
+      document.getElementById('itemForm').style.display = 'block';
+    }
+
+    function deleteItem(index) {
+      if (confirm('정말로 이 품목을 삭제하시겠습니까?')) {
+        items.splice(index, 1);
+        localStorage.setItem('itemList', JSON.stringify(items));
+        displayItems();
+        alert('품목이 삭제되었습니다.');
+      }
+    }
+
+    function searchItems() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+      if (!searchTerm) {
+        displayItems();
+        return;
+      }
+      
+      const filteredItems = items.filter(item => 
+        item.itemCode.toLowerCase().includes(searchTerm) ||
+        item.itemName.toLowerCase().includes(searchTerm) ||
+        item.category1st.toLowerCase().includes(searchTerm) ||
+        item.category2nd.toLowerCase().includes(searchTerm) ||
+        item.category3rd.toLowerCase().includes(searchTerm) ||
+        item.category4th.toLowerCase().includes(searchTerm)
+      );
+      
+      displayFilteredItems(filteredItems);
+    }
+
+    function displayFilteredItems(filteredItems) {
+      const tbody = document.getElementById('itemTableBody');
+      
+      if (filteredItems.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" style="text-align: center; padding: 40px; color: #666;">
+              검색 결과가 없습니다.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      let html = '';
+      filteredItems.forEach((item, index) => {
+        const originalIndex = items.findIndex(i => i.itemCode === item.itemCode);
+        const categoryPath = [item.category1st, item.category2nd, item.category3rd, item.category4th]
+          .filter(cat => cat).join(' > ');
+        
+        html += `
+          <tr>
+            <td>${item.itemCode}</td>
+            <td><strong>${item.itemName}</strong></td>
+            <td>${item.itemSpec}</td>
+            <td>
+              <div>${categoryPath}</div>
+            </td>
+            <td>${item.itemUnit}</td>
+            <td>${item.itemPrice ? Number(item.itemPrice).toLocaleString() + '원' : ''}</td>
+            <td>${item.itemVendor}</td>
+            <td>${new Date(item.createdAt).toLocaleDateString()}</td>
+            <td>
+              <button class="btn btn-primary btn-small" onclick="editItem(${originalIndex})">수정</button>
+              <button class="btn btn-danger btn-small" onclick="deleteItem(${originalIndex})">삭제</button>
+            </td>
+          </tr>
+        `;
+      });
+      
+      tbody.innerHTML = html;
+    }
+
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      displayItems();
+    }
+
+    function generateSampleItems() {
+      if (categories.length === 0) {
+        alert('먼저 카테고리를 불러와주세요.');
+        return;
+      }
+
+      if (confirm('샘플 품목 10개를 생성하시겠습니까?')) {
+        const sampleItems = [
+          {
+            itemCode: 'P001',
+            itemName: 'A4 복사용지',
+            itemSpec: '80g, 500매',
+            itemUnit: '박스',
+            itemPrice: 4000,
+            itemVendor: '(주)엔케이'
+          },
+          {
+            itemCode: 'P002', 
+            itemName: '볼펜',
+            itemSpec: '흑색 0.7mm',
+            itemUnit: '자루',
+            itemPrice: 500,
+            itemVendor: '(주)스마트솔루션'
+          },
+          {
+            itemCode: 'P003',
+            itemName: '클리어파일',
+            itemSpec: 'A4 투명',
+            itemUnit: '개',
+            itemPrice: 300,
+            itemVendor: '(주)테크노베이션'
+          },
+          {
+            itemCode: 'P004',
+            itemName: '박스테이프',
+            itemSpec: '48mm x 40m',
+            itemUnit: '롤',
+            itemPrice: 2500,
+            itemVendor: '(주)글로벌파트너'
+          },
+          {
+            itemCode: 'P005',
+            itemName: 'USB 메모리',
+            itemSpec: '32GB',
+            itemUnit: '개',
+            itemPrice: 15000,
+            itemVendor: '(주)프리미엄'
+          },
+          {
+            itemCode: 'P006',
+            itemName: '마우스패드',
+            itemSpec: '고무재질',
+            itemUnit: '개',
+            itemPrice: 3000,
+            itemVendor: '(주)엔케이'
+          },
+          {
+            itemCode: 'P007',
+            itemName: '형광펜',
+            itemSpec: '노란색',
+            itemUnit: '개',
+            itemPrice: 800,
+            itemVendor: '(주)스마트솔루션'
+          },
+          {
+            itemCode: 'P008',
+            itemName: '포스트잇',
+            itemSpec: '3x3 노란색',
+            itemUnit: '패드',
+            itemPrice: 1200,
+            itemVendor: '(주)테크노베이션'
+          },
+          {
+            itemCode: 'P009',
+            itemName: '바인더',
+            itemSpec: 'A4 3공',
+            itemUnit: '개',
+            itemPrice: 2500,
+            itemVendor: '(주)글로벌파트너'
+          },
+          {
+            itemCode: 'P010',
+            itemName: '스테이플러',
+            itemSpec: '중형 26/6',
+            itemUnit: '개',
+            itemPrice: 8000,
+            itemVendor: '(주)프리미엄'
+          }
+        ];
+
+        // 랜덤 카테고리 선택
+        const randomCategories = categories.slice(0, 10);
+        
+        sampleItems.forEach((sample, index) => {
+          const category = randomCategories[index] || categories[0];
+          const itemData = {
+            ...sample,
+            category1st: category.category1st || '',
+            category2nd: category.category2nd || '',
+            category3rd: category.category3rd || '',
+            category4th: category.category4th || '',
+            itemDescription: `${sample.itemName} 샘플 품목`,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          
+          items.push(itemData);
+        });
+
+        localStorage.setItem('itemList', JSON.stringify(items));
+        displayItems();
+        alert('샘플 품목 10개가 생성되었습니다.');
+      }
+    }
+  </script>
+</body>
+</html>

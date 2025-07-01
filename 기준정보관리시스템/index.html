@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>기준정보관리 시스템</title>
+  <style>
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .system-title {
+      color: white;
+      font-size: 48px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .system-subtitle {
+      color: rgba(255,255,255,0.9);
+      font-size: 18px;
+      text-align: center;
+      margin-bottom: 50px;
+    }
+    
+    .button-container {
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+    
+    .main-button {
+      background: white;
+      color: #333;
+      border: none;
+      padding: 25px 40px;
+      font-size: 20px;
+      font-weight: bold;
+      border-radius: 15px;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+      min-width: 200px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .main-button:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+      background: #f8f9fa;
+    }
+    
+    .category-btn {
+      background: linear-gradient(45deg, #2196F3, #21CBF3);
+      color: white;
+    }
+    
+    .code-btn {
+      background: linear-gradient(45deg, #FF9800, #FF5722);
+      color: white;
+    }
+    
+    .stats-container {
+      background: rgba(255,255,255,0.1);
+      border-radius: 15px;
+      padding: 30px;
+      margin-top: 20px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .stats-title {
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .stats-info {
+      color: rgba(255,255,255,0.9);
+      text-align: center;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    
+    .stats-number {
+      color: #ffc107;
+      font-weight: bold;
+      font-size: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <h1 class="system-title">기준정보관리 시스템</h1>
+    <p class="system-subtitle">카테고리 및 업무코드 통합 관리 시스템</p>
+    
+    <div class="button-container">
+      <a href="category-manage.html" class="main-button category-btn">
+        <span class="icon">📁</span>
+        카테고리 관리
+      </a>
+      <a href="code-manage.html" class="main-button code-btn">
+        <span class="icon">🏷️</span>
+        업무코드 관리
+      </a>
+    </div>
+    
+    <div class="stats-container">
+      <div class="stats-title">📊 시스템 현황</div>
+      <div class="stats-info">
+        등록된 카테고리: <span class="stats-number" id="categoryCount">0</span>개<br>
+        등록된 업무코드: <span class="stats-number" id="codeCount">0</span>개
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      loadCategoriesFromExcel();
+      updateStats();
+    });
+
+    async function loadCategoriesFromExcel() {
+      try {
+        const response = await fetch('../카테고리.xlsx');
+        const arrayBuffer = await response.arrayBuffer();
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(arrayBuffer);
+        
+        const worksheet = workbook.getWorksheet(1);
+        const categories = [];
+        
+        worksheet.eachRow((row, rowNumber) => {
+          if (rowNumber > 1) { // 헤더 제외
+            const rowData = row.values;
+            if (rowData[1]) { // 데이터가 있는 경우만
+              categories.push({
+                level1: rowData[1] || '',
+                level2: rowData[2] || '',
+                level3: rowData[3] || '',
+                code: rowData[4] || ''
+              });
+            }
+          }
+        });
+        
+        localStorage.setItem('categories', JSON.stringify(categories));
+        console.log('카테고리 데이터 로드 완료:', categories.length + '개');
+      } catch (error) {
+        console.log('카테고리 파일 로드 실패:', error);
+      }
+    }
+
+    function updateStats() {
+      const categories = JSON.parse(localStorage.getItem('categories') || '[]');
+      const codes = JSON.parse(localStorage.getItem('businessCodes') || '[]');
+      
+      document.getElementById('categoryCount').textContent = categories.length;
+      document.getElementById('codeCount').textContent = codes.length;
+    }
+  </script>
+</body>
+</html>

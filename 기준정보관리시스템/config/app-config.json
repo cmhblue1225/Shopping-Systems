@@ -1,0 +1,61 @@
+{
+  "system": {
+    "name": "기준정보관리 시스템",
+    "version": "1.0.0",
+    "description": "카테고리 및 업무코드 통합 관리 시스템",
+    "author": "개발팀",
+    "lastUpdate": "2025-07-01"
+  },
+  "features": {
+    "categoryManagement": {
+      "enabled": true,
+      "maxCategories": 10000,
+      "supportedLevels": 4,
+      "excelSupport": true
+    },
+    "codeManagement": {
+      "enabled": false,
+      "description": "향후 구현 예정"
+    }
+  },
+  "storage": {
+    "type": "localStorage",
+    "keys": {
+      "categories": "categories",
+      "businessCodes": "businessCodes"
+    },
+    "maxSize": "10MB"
+  },
+  "ui": {
+    "theme": "default",
+    "language": "ko",
+    "responsive": true,
+    "animations": true
+  },
+  "integration": {
+    "itemManagement": {
+      "enabled": true,
+      "sharedKeys": ["categories"]
+    },
+    "itemRegistration": {
+      "enabled": true,
+      "sharedKeys": ["categories"]
+    }
+  },
+  "excel": {
+    "supportedFormats": [".xlsx", ".xls"],
+    "maxFileSize": "50MB",
+    "expectedColumns": {
+      "groupId": "A",
+      "category1st": "B", 
+      "category2nd": "C",
+      "category3rd": "D",
+      "category4th": "E"
+    }
+  },
+  "performance": {
+    "enableVirtualScroll": true,
+    "lazyLoading": true,
+    "cacheExpiry": "1h"
+  }
+}

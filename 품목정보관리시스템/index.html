@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>품목정보관리 시스템</title>
+  <style>
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, #9C27B0 0%, #673AB7 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .system-title {
+      color: white;
+      font-size: 48px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .system-subtitle {
+      color: rgba(255,255,255,0.9);
+      font-size: 18px;
+      text-align: center;
+      margin-bottom: 50px;
+    }
+    
+    .button-container {
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+    
+    .main-button {
+      background: white;
+      color: #333;
+      border: none;
+      padding: 25px 40px;
+      font-size: 20px;
+      font-weight: bold;
+      border-radius: 15px;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+      min-width: 200px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .main-button:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+      background: #f8f9fa;
+    }
+    
+    .item-btn {
+      background: linear-gradient(45deg, #E91E63, #F06292);
+      color: white;
+    }
+    
+    .image-btn {
+      background: linear-gradient(45deg, #00BCD4, #4DD0E1);
+      color: white;
+    }
+    
+    .relation-btn {
+      background: linear-gradient(45deg, #4CAF50, #81C784);
+      color: white;
+    }
+    
+    .stats-container {
+      background: rgba(255,255,255,0.1);
+      border-radius: 15px;
+      padding: 30px;
+      margin-top: 20px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .stats-title {
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .stats-info {
+      color: rgba(255,255,255,0.9);
+      text-align: center;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    
+    .stats-number {
+      color: #ffc107;
+      font-weight: bold;
+      font-size: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <h1 class="system-title">품목정보관리 시스템</h1>
+    <p class="system-subtitle">품목 및 이미지 통합 관리 시스템</p>
+    
+    <div class="button-container">
+      <a href="item-manage.html" class="main-button item-btn">
+        <span class="icon">📦</span>
+        품목 관리
+      </a>
+      <a href="image-manage.html" class="main-button image-btn">
+        <span class="icon">🖼️</span>
+        이미지 관리
+      </a>
+      <a href="relation-manage.html" class="main-button relation-btn">
+        <span class="icon">🔗</span>
+        품목-이미지 연결
+      </a>
+    </div>
+    
+    <div class="stats-container">
+      <div class="stats-title">📊 시스템 현황</div>
+      <div class="stats-info">
+        등록된 품목: <span class="stats-number" id="itemCount">0</span>개<br>
+        등록된 이미지: <span class="stats-number" id="imageCount">0</span>개<br>
+        연결된 관계: <span class="stats-number" id="relationCount">0</span>개
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      updateStats();
+    });
+
+    function updateStats() {
+      const items = JSON.parse(localStorage.getItem('itemList') || '[]');
+      const images = JSON.parse(localStorage.getItem('imageList') || '[]');
+      const relations = JSON.parse(localStorage.getItem('itemImageRelations') || '[]');
+      
+      document.getElementById('itemCount').textContent = items.length;
+      document.getElementById('imageCount').textContent = images.length;
+      document.getElementById('relationCount').textContent = relations.length;
+    }
+  </script>
+</body>
+</html>
