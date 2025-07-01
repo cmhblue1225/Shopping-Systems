@@ -34,6 +34,22 @@
     .btn-danger:hover { background: #c82333; }
     .search-container { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .search-input { padding: 10px; border: 1px solid #ddd; border-radius: 5px; flex: 1; min-width: 200px; }
+    
+    /* 연결된 이미지 스타일 */
+    .item-images-container { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; max-width: 150px; }
+    .item-image-thumbnail { width: 30px; height: 30px; border-radius: 4px; overflow: hidden; cursor: pointer; border: 1px solid #ddd; transition: transform 0.2s; }
+    .item-image-thumbnail:hover { transform: scale(1.1); border-color: #007bff; }
+    .item-image-thumbnail img { width: 100%; height: 100%; object-fit: cover; }
+    .more-images { background: #007bff; color: white; font-size: 10px; padding: 2px 4px; border-radius: 3px; }
+    
+    /* 이미지 모달 스타일 */
+    .image-modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
+    .image-modal .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 90%; max-height: 90%; background: white; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
+    .image-modal .modal-image { max-width: 100%; height: auto; display: block; }
+    .image-modal .modal-info { padding: 15px; background: white; }
+    .image-modal .modal-info h3 { margin: 0 0 10px 0; }
+    .image-modal .modal-info p { margin: 0; color: #666; font-size: 14px; }
+    .image-modal .modal-close { position: absolute; top: 10px; right: 15px; color: white; font-size: 30px; cursor: pointer; background: rgba(0,0,0,0.5); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; z-index: 1001; }
   </style>
 </head>
 <body>
@@ -143,13 +159,14 @@
               <th>단위</th>
               <th>단가</th>
               <th>거래처</th>
+              <th>연결된 이미지</th>
               <th>등록일</th>
               <th>관리</th>
             </tr>
           </thead>
           <tbody id="itemTableBody">
             <tr>
-              <td colspan="9" style="text-align: center; padding: 40px; color: #666;">
+              <td colspan="10" style="text-align: center; padding: 40px; color: #666;">
                 등록된 품목이 없습니다.
               </td>
             </tr>
@@ -353,7 +370,7 @@
       if (items.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="9" style="text-align: center; padding: 40px; color: #666;">
+            <td colspan="10" style="text-align: center; padding: 40px; color: #666;">
               등록된 품목이 없습니다.
             </td>
           </tr>
@@ -366,6 +383,9 @@
         const categoryPath = [item.category1st, item.category2nd, item.category3rd, item.category4th]
           .filter(cat => cat).join(' > ');
         
+        // 연결된 이미지 가져오기
+        const connectedImages = getConnectedImages(item.itemCode);
+        
         html += `
           <tr>
             <td>${item.itemCode}</td>
@@ -377,6 +397,7 @@
             <td>${item.itemUnit}</td>
             <td>${item.itemPrice ? Number(item.itemPrice).toLocaleString() + '원' : ''}</td>
             <td>${item.itemVendor}</td>
+            <td>${connectedImages}</td>
             <td>${new Date(item.createdAt).toLocaleDateString()}</td>
             <td>
               <button class="btn btn-primary btn-small" onclick="editItem(${index})">수정</button>
@@ -453,7 +474,7 @@
       if (filteredItems.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="9" style="text-align: center; padding: 40px; color: #666;">
+            <td colspan="10" style="text-align: center; padding: 40px; color: #666;">
               검색 결과가 없습니다.
             </td>
           </tr>
@@ -467,6 +488,9 @@
         const categoryPath = [item.category1st, item.category2nd, item.category3rd, item.category4th]
           .filter(cat => cat).join(' > ');
         
+        // 연결된 이미지 가져오기
+        const connectedImages = getConnectedImages(item.itemCode);
+        
         html += `
           <tr>
             <td>${item.itemCode}</td>
@@ -478,6 +502,7 @@
             <td>${item.itemUnit}</td>
             <td>${item.itemPrice ? Number(item.itemPrice).toLocaleString() + '원' : ''}</td>
             <td>${item.itemVendor}</td>
+            <td>${connectedImages}</td>
             <td>${new Date(item.createdAt).toLocaleDateString()}</td>
             <td>
               <button class="btn btn-primary btn-small" onclick="editItem(${originalIndex})">수정</button>
@@ -609,6 +634,84 @@
         alert('샘플 품목 10개가 생성되었습니다.');
       }
     }
+
+    // 연결된 이미지 가져오기 및 표시 함수
+    function getConnectedImages(itemCode) {
+      const relations = JSON.parse(localStorage.getItem('itemImageRelations') || '[]');
+      const images = JSON.parse(localStorage.getItem('imageList') || '[]');
+      
+      const connectedRelations = relations.filter(rel => rel.itemCode === itemCode);
+      
+      if (connectedRelations.length === 0) {
+        return '<span style="color: #999; font-size: 12px;">연결된 이미지 없음</span>';
+      }
+      
+      let html = '<div class="item-images-container">';
+      
+      const maxDisplay = 4; // 최대 4개까지 표시
+      connectedRelations.slice(0, maxDisplay).forEach(rel => {
+        const image = images.find(img => img.id === rel.imageId);
+        if (image) {
+          html += `
+            <div class="item-image-thumbnail" onclick="showImageModal('${image.id}')" title="${image.name}">
+              <img src="${image.base64}" alt="${image.name}" />
+            </div>
+          `;
+        }
+      });
+      
+      if (connectedRelations.length > maxDisplay) {
+        html += `<div class="more-images">+${connectedRelations.length - maxDisplay}</div>`;
+      }
+      
+      html += '</div>';
+      return html;
+    }
+
+    // 이미지 모달 보기
+    function showImageModal(imageId) {
+      const images = JSON.parse(localStorage.getItem('imageList') || '[]');
+      const image = images.find(img => img.id === imageId);
+      
+      if (image) {
+        // 이미지 모달이 없다면 생성
+        if (!document.getElementById('imageModal')) {
+          const modalHtml = `
+            <div id="imageModal" class="image-modal" onclick="closeImageModal()">
+              <span class="modal-close" onclick="closeImageModal()">&times;</span>
+              <div class="modal-content" onclick="event.stopPropagation()">
+                <img id="modalImage" class="modal-image" src="" alt="">
+                <div class="modal-info">
+                  <h3 id="modalImageName"></h3>
+                  <p id="modalImageDetails"></p>
+                </div>
+              </div>
+            </div>
+          `;
+          document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+        
+        document.getElementById('modalImage').src = image.base64;
+        document.getElementById('modalImageName').textContent = image.name;
+        document.getElementById('modalImageDetails').textContent = `크기: ${(image.size / 1024).toFixed(1)}KB | 업로드: ${new Date(image.uploadDate).toLocaleDateString()}`;
+        document.getElementById('imageModal').style.display = 'block';
+      }
+    }
+
+    // 이미지 모달 닫기
+    function closeImageModal() {
+      const modal = document.getElementById('imageModal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    }
+
+    // ESC 키로 모달 닫기
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        closeImageModal();
+      }
+    });
   </script>
 </body>
 </html>
