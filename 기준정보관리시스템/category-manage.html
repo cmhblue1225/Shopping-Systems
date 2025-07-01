@@ -35,6 +35,42 @@
     .stats-item { display: inline-block; margin-right: 20px; }
     .stats-number { font-weight: bold; color: #007bff; font-size: 18px; }
     .loading { text-align: center; padding: 40px; color: #666; }
+    
+    /* 모달 스타일 */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+    .modal-content { background: white; margin: 10% auto; padding: 0; width: 500px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: modalShow 0.3s ease; }
+    @keyframes modalShow { from { opacity: 0; transform: translateY(-50px); } to { opacity: 1; transform: translateY(0); } }
+    .modal-header { background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; padding: 20px; border-radius: 10px 10px 0 0; position: relative; }
+    .modal-header h3 { margin: 0; }
+    .modal-close { position: absolute; right: 15px; top: 15px; color: white; font-size: 24px; cursor: pointer; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.3s; }
+    .modal-close:hover { background: rgba(255,255,255,0.2); }
+    .modal-body { padding: 20px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+    .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
+    .form-control:focus { border-color: #4CAF50; outline: none; box-shadow: 0 0 5px rgba(76, 175, 80, 0.3); }
+    .modal-footer { padding: 15px 20px; text-align: right; border-top: 1px solid #eee; }
+    .btn-modal { padding: 8px 20px; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px; font-size: 14px; }
+    .btn-modal-primary { background: #4CAF50; color: white; }
+    .btn-modal-primary:hover { background: #45a049; }
+    .btn-modal-secondary { background: #6c757d; color: white; }
+    .btn-modal-secondary:hover { background: #5a6268; }
+    .btn-modal-danger { background: #dc3545; color: white; }
+    .btn-modal-danger:hover { background: #c82333; }
+    
+    /* 트리 노드 액션 버튼 */
+    .tree-node-actions { display: none; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
+    .tree-node:hover .tree-node-actions { display: block; }
+    .action-btn { background: #007bff; color: white; border: none; padding: 4px 8px; margin: 0 2px; border-radius: 3px; cursor: pointer; font-size: 11px; }
+    .action-btn:hover { background: #0056b3; }
+    .action-btn.edit { background: #ffc107; }
+    .action-btn.edit:hover { background: #e0a800; }
+    .action-btn.delete { background: #dc3545; }
+    .action-btn.delete:hover { background: #c82333; }
+    
+    /* 필수 입력 표시 */
+    .required { color: #dc3545; }
+    .form-help { font-size: 12px; color: #666; margin-top: 5px; }
   </style>
 </head>
 <body>
@@ -48,6 +84,7 @@
       <div class="btn-group">
         <button class="btn btn-primary" onclick="triggerFileInput()">📁 Excel 파일 업로드</button>
         <button class="btn btn-primary" onclick="loadCategories()">🔄 기본 경로에서 불러오기</button>
+        <button class="btn btn-success" onclick="showAddCategoryModal()">➕ 카테고리 추가</button>
         <button class="btn btn-success" onclick="exportCategories()">📤 카테고리 내보내기</button>
         <button class="btn btn-warning" onclick="showStats()">📊 통계 보기</button>
         <a href="index.html" class="btn" style="background: #6c757d; color: white;">🏠 메인으로</a>
@@ -71,6 +108,70 @@
       
       <div id="categoryContainer">
         <div class="loading">카테고리를 불러오려면 '카테고리 불러오기' 버튼을 클릭하세요.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 카테고리 추가/수정 모달 -->
+  <div id="categoryModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">카테고리 추가</h3>
+        <span class="modal-close" onclick="closeCategoryModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="categoryForm">
+          <div class="form-group">
+            <label for="groupId">Group ID</label>
+            <input type="number" id="groupId" class="form-control" placeholder="자동 생성됩니다" readonly>
+            <div class="form-help">Group ID는 자동으로 생성됩니다.</div>
+          </div>
+          
+          <div class="form-group">
+            <label for="category1st">1차 카테고리 <span class="required">*</span></label>
+            <input type="text" id="category1st" class="form-control" placeholder="예: 생활플러스" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="category2nd">2차 카테고리</label>
+            <input type="text" id="category2nd" class="form-control" placeholder="예: 홈&카서비스">
+          </div>
+          
+          <div class="form-group">
+            <label for="category3rd">3차 카테고리</label>
+            <input type="text" id="category3rd" class="form-control" placeholder="예: 세탁/청소">
+          </div>
+          
+          <div class="form-group">
+            <label for="category4th">4차 카테고리</label>
+            <input type="text" id="category4th" class="form-control" placeholder="예: 세탁수거">
+            <div class="form-help">4차 카테고리까지 입력할 수 있습니다.</div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal btn-modal-secondary" onclick="closeCategoryModal()">취소</button>
+        <button type="button" class="btn-modal btn-modal-primary" onclick="saveCategory()">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 카테고리 삭제 확인 모달 -->
+  <div id="deleteModal" class="modal">
+    <div class="modal-content" style="width: 400px;">
+      <div class="modal-header" style="background: linear-gradient(135deg, #dc3545, #c82333);">
+        <h3>카테고리 삭제</h3>
+        <span class="modal-close" onclick="closeDeleteModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <p><strong>정말로 이 카테고리를 삭제하시겠습니까?</strong></p>
+        <div id="deleteInfo" style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0;">
+        </div>
+        <p style="color: #dc3545; font-size: 14px;">⚠️ 이 작업은 되돌릴 수 없습니다.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal btn-modal-secondary" onclick="closeDeleteModal()">취소</button>
+        <button type="button" class="btn-modal btn-modal-danger" onclick="confirmDelete()">삭제</button>
       </div>
     </div>
   </div>
@@ -205,10 +306,17 @@
         const level1Id = 'cat1_' + level1.replace(/\s+/g, '_');
         const hasChildren = Object.keys(categoryTree[level1]).length > 0;
         
+        const level1Category = categories.find(cat => cat.category1st === level1 && !cat.category2nd);
+        const categoryId = level1Category ? level1Category.groupId : 'temp_' + Date.now();
+        
         html += `
           <div class="tree-node level-1 ${hasChildren ? 'collapsed' : ''}" onclick="toggleNode('${level1Id}')">
             <span class="expand-icon">${hasChildren ? '▶' : '●'}</span>
             <strong>${level1}</strong>
+            <div class="tree-node-actions">
+              <button class="action-btn edit" onclick="event.stopPropagation(); editCategory('${categoryId}', '${level1}', '', '', '')" title="수정">✏️</button>
+              <button class="action-btn delete" onclick="event.stopPropagation(); deleteCategory('${categoryId}', '${level1}', '', '', '')" title="삭제">🗑️</button>
+            </div>
           </div>
         `;
         
@@ -219,10 +327,17 @@
             const level2Id = 'cat2_' + level1.replace(/\s+/g, '_') + '_' + level2.replace(/\s+/g, '_');
             const hasChildren2 = Object.keys(categoryTree[level1][level2]).length > 0;
             
+            const level2Category = categories.find(cat => cat.category1st === level1 && cat.category2nd === level2 && !cat.category3rd);
+            const categoryId2 = level2Category ? level2Category.groupId : 'temp_' + Date.now();
+            
             html += `
               <div class="tree-node level-2 ${hasChildren2 ? 'collapsed' : ''}" onclick="toggleNode('${level2Id}')">
                 <span class="expand-icon">${hasChildren2 ? '▶' : '●'}</span>
                 ${level2}
+                <div class="tree-node-actions">
+                  <button class="action-btn edit" onclick="event.stopPropagation(); editCategory('${categoryId2}', '${level1}', '${level2}', '', '')" title="수정">✏️</button>
+                  <button class="action-btn delete" onclick="event.stopPropagation(); deleteCategory('${categoryId2}', '${level1}', '${level2}', '', '')" title="삭제">🗑️</button>
+                </div>
               </div>
             `;
             
@@ -233,10 +348,17 @@
                 const level3Id = 'cat3_' + level1.replace(/\s+/g, '_') + '_' + level2.replace(/\s+/g, '_') + '_' + level3.replace(/\s+/g, '_');
                 const hasChildren3 = Object.keys(categoryTree[level1][level2][level3]).length > 0;
                 
+                const level3Category = categories.find(cat => cat.category1st === level1 && cat.category2nd === level2 && cat.category3rd === level3 && !cat.category4th);
+                const categoryId3 = level3Category ? level3Category.groupId : 'temp_' + Date.now();
+                
                 html += `
                   <div class="tree-node level-3 ${hasChildren3 ? 'collapsed' : ''}" onclick="toggleNode('${level3Id}')">
                     <span class="expand-icon">${hasChildren3 ? '▶' : '●'}</span>
                     ${level3}
+                    <div class="tree-node-actions">
+                      <button class="action-btn edit" onclick="event.stopPropagation(); editCategory('${categoryId3}', '${level1}', '${level2}', '${level3}', '')" title="수정">✏️</button>
+                      <button class="action-btn delete" onclick="event.stopPropagation(); deleteCategory('${categoryId3}', '${level1}', '${level2}', '${level3}', '')" title="삭제">🗑️</button>
+                    </div>
                   </div>
                 `;
                 
@@ -244,10 +366,17 @@
                   html += `<div class="tree-children" id="${level3Id}">`;
                   
                   Object.keys(categoryTree[level1][level2][level3]).forEach(level4 => {
+                    const level4Category = categories.find(cat => cat.category1st === level1 && cat.category2nd === level2 && cat.category3rd === level3 && cat.category4th === level4);
+                    const categoryId4 = level4Category ? level4Category.groupId : 'temp_' + Date.now();
+                    
                     html += `
                       <div class="tree-node level-4">
                         <span class="expand-icon">●</span>
                         ${level4}
+                        <div class="tree-node-actions">
+                          <button class="action-btn edit" onclick="event.stopPropagation(); editCategory('${categoryId4}', '${level1}', '${level2}', '${level3}', '${level4}')" title="수정">✏️</button>
+                          <button class="action-btn delete" onclick="event.stopPropagation(); deleteCategory('${categoryId4}', '${level1}', '${level2}', '${level3}', '${level4}')" title="삭제">🗑️</button>
+                        </div>
                       </div>
                     `;
                   });
@@ -373,6 +502,180 @@
 3차 카테고리: ${document.getElementById('level3Count').textContent}개
 4차 카테고리: ${document.getElementById('level4Count').textContent}개`);
     }
+
+    // 카테고리 CRUD 기능
+    let currentEditingId = null;
+
+    function showAddCategoryModal() {
+      currentEditingId = null;
+      document.getElementById('modalTitle').textContent = '카테고리 추가';
+      document.getElementById('groupId').value = '';
+      document.getElementById('category1st').value = '';
+      document.getElementById('category2nd').value = '';
+      document.getElementById('category3rd').value = '';
+      document.getElementById('category4th').value = '';
+      document.getElementById('categoryModal').style.display = 'block';
+    }
+
+    function editCategory(categoryId, cat1, cat2, cat3, cat4) {
+      currentEditingId = categoryId;
+      document.getElementById('modalTitle').textContent = '카테고리 수정';
+      document.getElementById('groupId').value = categoryId;
+      document.getElementById('category1st').value = cat1 || '';
+      document.getElementById('category2nd').value = cat2 || '';
+      document.getElementById('category3rd').value = cat3 || '';
+      document.getElementById('category4th').value = cat4 || '';
+      document.getElementById('categoryModal').style.display = 'block';
+    }
+
+    function deleteCategory(categoryId, cat1, cat2, cat3, cat4) {
+      let categoryPath = cat1;
+      if (cat2) categoryPath += ' > ' + cat2;
+      if (cat3) categoryPath += ' > ' + cat3;
+      if (cat4) categoryPath += ' > ' + cat4;
+      
+      document.getElementById('deleteInfo').innerHTML = `
+        <strong>카테고리:</strong> ${categoryPath}<br>
+        <strong>Group ID:</strong> ${categoryId}
+      `;
+      
+      // 삭제할 카테고리 ID 저장
+      document.getElementById('deleteModal').setAttribute('data-delete-id', categoryId);
+      document.getElementById('deleteModal').setAttribute('data-delete-path', categoryPath);
+      document.getElementById('deleteModal').style.display = 'block';
+    }
+
+    function closeCategoryModal() {
+      document.getElementById('categoryModal').style.display = 'none';
+      currentEditingId = null;
+    }
+
+    function closeDeleteModal() {
+      document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    function saveCategory() {
+      const cat1 = document.getElementById('category1st').value.trim();
+      const cat2 = document.getElementById('category2nd').value.trim();
+      const cat3 = document.getElementById('category3rd').value.trim();
+      const cat4 = document.getElementById('category4th').value.trim();
+      
+      if (!cat1) {
+        alert('1차 카테고리는 필수입니다.');
+        return;
+      }
+      
+      // 중복 확인
+      const isDuplicate = categories.some(cat => 
+        cat.category1st === cat1 && 
+        cat.category2nd === cat2 && 
+        cat.category3rd === cat3 && 
+        cat.category4th === cat4 &&
+        (currentEditingId === null || cat.groupId !== currentEditingId)
+      );
+      
+      if (isDuplicate) {
+        alert('동일한 카테고리가 이미 존재합니다.');
+        return;
+      }
+      
+      if (currentEditingId) {
+        // 수정
+        const categoryIndex = categories.findIndex(cat => cat.groupId == currentEditingId);
+        if (categoryIndex !== -1) {
+          categories[categoryIndex] = {
+            groupId: currentEditingId,
+            category1st: cat1,
+            category2nd: cat2,
+            category3rd: cat3,
+            category4th: cat4
+          };
+        }
+      } else {
+        // 추가
+        const newGroupId = Math.max(...categories.map(cat => parseInt(cat.groupId) || 0)) + 1;
+        categories.push({
+          groupId: newGroupId,
+          category1st: cat1,
+          category2nd: cat2,
+          category3rd: cat3,
+          category4th: cat4
+        });
+      }
+      
+      localStorage.setItem('categories', JSON.stringify(categories));
+      buildCategoryTree();
+      displayCategories();
+      updateStats();
+      closeCategoryModal();
+      
+      alert(currentEditingId ? '카테고리가 수정되었습니다.' : '카테고리가 추가되었습니다.');
+    }
+
+    function confirmDelete() {
+      const deleteId = document.getElementById('deleteModal').getAttribute('data-delete-id');
+      const deletePath = document.getElementById('deleteModal').getAttribute('data-delete-path');
+      
+      // 하위 카테고리 확인
+      const categoryToDelete = categories.find(cat => cat.groupId == deleteId);
+      if (categoryToDelete) {
+        const hasSubCategories = categories.some(cat => {
+          // 삭제하려는 카테고리보다 더 깊은 레벨의 카테고리가 있는지 확인
+          if (categoryToDelete.category4th) return false; // 4차는 하위 없음
+          if (categoryToDelete.category3rd) {
+            return cat.category1st === categoryToDelete.category1st &&
+                   cat.category2nd === categoryToDelete.category2nd &&
+                   cat.category3rd === categoryToDelete.category3rd &&
+                   cat.category4th && cat.groupId != deleteId;
+          }
+          if (categoryToDelete.category2nd) {
+            return cat.category1st === categoryToDelete.category1st &&
+                   cat.category2nd === categoryToDelete.category2nd &&
+                   cat.category3rd && cat.groupId != deleteId;
+          }
+          // 1차 카테고리인 경우
+          return cat.category1st === categoryToDelete.category1st &&
+                 cat.category2nd && cat.groupId != deleteId;
+        });
+        
+        if (hasSubCategories) {
+          alert('하위 카테고리가 존재하여 삭제할 수 없습니다. 하위 카테고리를 먼저 삭제해주세요.');
+          closeDeleteModal();
+          return;
+        }
+      }
+      
+      // 실제 삭제 수행
+      categories = categories.filter(cat => cat.groupId != deleteId);
+      localStorage.setItem('categories', JSON.stringify(categories));
+      buildCategoryTree();
+      displayCategories();
+      updateStats();
+      closeDeleteModal();
+      
+      alert('카테고리가 삭제되었습니다.');
+    }
+
+    // 모달 외부 클릭시 닫기
+    window.onclick = function(event) {
+      const categoryModal = document.getElementById('categoryModal');
+      const deleteModal = document.getElementById('deleteModal');
+      
+      if (event.target === categoryModal) {
+        closeCategoryModal();
+      }
+      if (event.target === deleteModal) {
+        closeDeleteModal();
+      }
+    }
+
+    // ESC 키로 모달 닫기
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        closeCategoryModal();
+        closeDeleteModal();
+      }
+    });
   </script>
 </body>
 </html>
