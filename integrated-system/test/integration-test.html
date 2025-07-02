@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>통합 시스템 테스트</title>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .log {
+            height: 200px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔧 Shopping Systems 통합 시스템 테스트</h1>
+        
+        <div class="test-section">
+            <h3>🏗️ 시스템 초기화 테스트</h3>
+            <button onclick="testSystemInitialization()">시스템 초기화 테스트</button>
+            <div id="init-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>💾 데이터 관리 테스트</h3>
+            <button onclick="testDataManager()">데이터 관리 테스트</button>
+            <div id="data-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔄 실시간 동기화 테스트</h3>
+            <button onclick="testRealtimeSync()">동기화 테스트</button>
+            <div id="sync-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>⚡ 워크플로우 테스트</h3>
+            <button onclick="testWorkflow()">워크플로우 테스트</button>
+            <div id="workflow-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 검색 엔진 테스트</h3>
+            <button onclick="testSearchEngine()">검색 테스트</button>
+            <div id="search-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 통합 API 테스트</h3>
+            <button onclick="testIntegratedAPI()">API 테스트</button>
+            <div id="api-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🚀 전체 통합 테스트</h3>
+            <button onclick="runFullIntegrationTest()">전체 테스트 실행</button>
+            <div id="full-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📝 테스트 로그</h3>
+            <button onclick="clearLog()">로그 지우기</button>
+            <div id="test-log" class="log"></div>
+        </div>
+    </div>
+
+    <!-- 통합 시스템 스크립트 -->
+    <script src="../core/data-manager.js"></script>
+    <script src="../core/api-interface.js"></script>
+    <script src="../core/realtime-sync.js"></script>
+    <script src="../core/workflow-engine.js"></script>
+    <script src="../core/search-engine.js"></script>
+
+    <script>
+        let testResults = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logElement = document.getElementById('test-log');
+            logElement.innerHTML += `[${timestamp}] ${type.toUpperCase()}: ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+            
+            testResults.push({ timestamp, type, message });
+        }
+
+        function displayResult(containerId, result, message) {
+            const container = document.getElementById(containerId);
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${result ? 'success' : 'error'}`;
+            resultDiv.textContent = message;
+            container.appendChild(resultDiv);
+        }
+
+        function clearResults(containerId) {
+            document.getElementById(containerId).innerHTML = '';
+        }
+
+        function clearLog() {
+            document.getElementById('test-log').innerHTML = '';
+            testResults = [];
+        }
+
+        // 시스템 초기화 테스트
+        async function testSystemInitialization() {
+            clearResults('init-results');
+            log('시스템 초기화 테스트 시작');
+
+            try {
+                // 전역 객체 존재 확인
+                const components = [
+                    { name: 'IntegratedDataManager', obj: window.IntegratedDataManager },
+                    { name: 'IntegratedAPI', obj: window.IntegratedAPI },
+                    { name: 'RealtimeSyncManager', obj: window.RealtimeSyncManager },
+                    { name: 'WorkflowEngine', obj: window.WorkflowEngine },
+                    { name: 'IntegratedSearchEngine', obj: window.IntegratedSearchEngine }
+                ];
+
+                for (const component of components) {
+                    if (component.obj) {
+                        displayResult('init-results', true, `✅ ${component.name} 초기화 성공`);
+                        log(`${component.name} 초기화 확인됨`);
+                    } else {
+                        displayResult('init-results', false, `❌ ${component.name} 초기화 실패`);
+                        log(`${component.name} 초기화 실패`, 'error');
+                    }
+                }
+
+                // 기본 함수 존재 확인
+                const functions = [
+                    'getIntegratedData',
+                    'setIntegratedData',
+                    'subscribeToData',
+                    'searchIntegrated',
+                    'generateReport'
+                ];
+
+                for (const funcName of functions) {
+                    if (typeof window[funcName] === 'function') {
+                        displayResult('init-results', true, `✅ ${funcName} 함수 사용 가능`);
+                        log(`${funcName} 함수 확인됨`);
+                    } else {
+                        displayResult('init-results', false, `❌ ${funcName} 함수 없음`);
+                        log(`${funcName} 함수 없음`, 'error');
+                    }
+                }
+
+            } catch (error) {
+                displayResult('init-results', false, `❌ 초기화 테스트 오류: ${error.message}`);
+                log(`초기화 테스트 오류: ${error.message}`, 'error');
+            }
+        }
+
+        // 데이터 관리 테스트
+        async function testDataManager() {
+            clearResults('data-results');
+            log('데이터 관리 테스트 시작');
+
+            try {
+                const dataManager = window.IntegratedDataManager;
+                
+                // 테스트 데이터 생성
+                const testData = {
+                    id: 'test_' + Date.now(),
+                    name: '테스트 항목',
+                    createdAt: new Date().toISOString()
+                };
+
+                // 데이터 저장 테스트
+                const success = dataManager.setData('test_items', [testData]);
+                if (success) {
+                    displayResult('data-results', true, '✅ 데이터 저장 성공');
+                    log('데이터 저장 테스트 통과');
+                } else {
+                    displayResult('data-results', false, '❌ 데이터 저장 실패');
+                    log('데이터 저장 테스트 실패', 'error');
+                }
+
+                // 데이터 조회 테스트
+                const retrievedData = dataManager.getData('test_items');
+                if (retrievedData && retrievedData.length > 0) {
+                    displayResult('data-results', true, '✅ 데이터 조회 성공');
+                    log('데이터 조회 테스트 통과');
+                } else {
+                    displayResult('data-results', false, '❌ 데이터 조회 실패');
+                    log('데이터 조회 테스트 실패', 'error');
+                }
+
+                // 데이터 추가 테스트
+                const addedItem = dataManager.addData('test_items', {
+                    name: '추가된 테스트 항목'
+                });
+                if (addedItem && addedItem.id) {
+                    displayResult('data-results', true, '✅ 데이터 추가 성공');
+                    log('데이터 추가 테스트 통과');
+                } else {
+                    displayResult('data-results', false, '❌ 데이터 추가 실패');
+                    log('데이터 추가 테스트 실패', 'error');
+                }
+
+                // 시스템 상태 확인
+                const systemStatus = dataManager.getSystemStatus();
+                if (systemStatus && systemStatus.isHealthy) {
+                    displayResult('data-results', true, '✅ 시스템 상태 정상');
+                    log('시스템 상태 확인 완료');
+                } else {
+                    displayResult('data-results', false, '❌ 시스템 상태 이상');
+                    log('시스템 상태 이상', 'error');
+                }
+
+            } catch (error) {
+                displayResult('data-results', false, `❌ 데이터 관리 테스트 오류: ${error.message}`);
+                log(`데이터 관리 테스트 오류: ${error.message}`, 'error');
+            }
+        }
+
+        // 실시간 동기화 테스트
+        async function testRealtimeSync() {
+            clearResults('sync-results');
+            log('실시간 동기화 테스트 시작');
+
+            try {
+                const syncManager = window.RealtimeSyncManager;
+                const dataManager = window.IntegratedDataManager;
+
+                // 옵저버 등록 테스트
+                let syncDetected = false;
+                const unsubscribe = dataManager.subscribe('test_sync', (event) => {
+                    syncDetected = true;
+                    log(`동기화 이벤트 감지: ${event.action}`);
+                });
+
+                // 데이터 변경으로 동기화 트리거
+                dataManager.setData('test_sync', [{ 
+                    id: 'sync_test',
+                    data: 'sync test data',
+                    timestamp: new Date().toISOString()
+                }]);
+
+                // 잠시 대기 후 확인
+                setTimeout(() => {
+                    if (syncDetected) {
+                        displayResult('sync-results', true, '✅ 실시간 동기화 감지 성공');
+                        log('실시간 동기화 테스트 통과');
+                    } else {
+                        displayResult('sync-results', false, '❌ 실시간 동기화 감지 실패');
+                        log('실시간 동기화 테스트 실패', 'error');
+                    }
+                    unsubscribe();
+                }, 100);
+
+                // 네트워크 상태 확인
+                const isOnline = navigator.onLine;
+                displayResult('sync-results', isOnline, 
+                    isOnline ? '✅ 네트워크 상태 온라인' : '⚠️ 네트워크 상태 오프라인');
+                log(`네트워크 상태: ${isOnline ? '온라인' : '오프라인'}`);
+
+            } catch (error) {
+                displayResult('sync-results', false, `❌ 동기화 테스트 오류: ${error.message}`);
+                log(`동기화 테스트 오류: ${error.message}`, 'error');
+            }
+        }
+
+        // 워크플로우 테스트
+        async function testWorkflow() {
+            clearResults('workflow-results');
+            log('워크플로우 테스트 시작');
+
+            try {
+                const workflowEngine = window.WorkflowEngine;
+
+                // 워크플로우 템플릿 확인
+                const templates = workflowEngine.workflowTemplates;
+                if (templates && templates.size > 0) {
+                    displayResult('workflow-results', true, `✅ 워크플로우 템플릿 로드됨 (${templates.size}개)`);
+                    log(`워크플로우 템플릿 ${templates.size}개 확인`);
+                } else {
+                    displayResult('workflow-results', false, '❌ 워크플로우 템플릿 없음');
+                    log('워크플로우 템플릿 없음', 'error');
+                }
+
+                // 테스트 워크플로우 시작
+                const testEvent = {
+                    type: 'data_change',
+                    dataKey: 'newItemRegistrations',
+                    action: 'add',
+                    data: {
+                        id: 'test_registration',
+                        items: [{ itemCode: 'TEST001', itemName: '테스트 품목' }]
+                    }
+                };
+
+                workflowEngine.eventQueue.push(testEvent);
+                workflowEngine.processEventQueue();
+
+                // 활성 워크플로우 확인
+                setTimeout(() => {
+                    const activeWorkflows = workflowEngine.getActiveWorkflows();
+                    if (activeWorkflows.length > 0) {
+                        displayResult('workflow-results', true, `✅ 워크플로우 시작됨 (${activeWorkflows.length}개 활성)`);
+                        log(`활성 워크플로우 ${activeWorkflows.length}개 확인`);
+                    } else {
+                        displayResult('workflow-results', false, '❌ 워크플로우 시작 실패');
+                        log('워크플로우 시작 실패', 'error');
+                    }
+                }, 100);
+
+            } catch (error) {
+                displayResult('workflow-results', false, `❌ 워크플로우 테스트 오류: ${error.message}`);
+                log(`워크플로우 테스트 오류: ${error.message}`, 'error');
+            }
+        }
+
+        // 검색 엔진 테스트
+        async function testSearchEngine() {
+            clearResults('search-results');
+            log('검색 엔진 테스트 시작');
+
+            try {
+                const searchEngine = window.IntegratedSearchEngine;
+
+                // 테스트 데이터 생성
+                const testItems = [
+                    { id: '1', itemName: '노트북', category: '전자제품' },
+                    { id: '2', itemName: '마우스', category: '전자제품' },
+                    { id: '3', itemName: '키보드', category: '전자제품' }
+                ];
+                window.IntegratedDataManager.setData('items', testItems);
+
+                // 인덱스 재구축
+                searchEngine.buildIndex('items');
+
+                // 검색 테스트
+                const searchResults = await searchEngine.search('노트북');
+                if (searchResults && searchResults.results.length > 0) {
+                    displayResult('search-results', true, `✅ 검색 성공 (${searchResults.results.length}개 결과)`);
+                    log(`검색 테스트 통과: ${searchResults.results.length}개 결과`);
+                } else {
+                    displayResult('search-results', false, '❌ 검색 결과 없음');
+                    log('검색 테스트 실패', 'error');
+                }
+
+                // 보고서 템플릿 확인
+                const reportTemplates = searchEngine.getReportTemplates();
+                if (reportTemplates && reportTemplates.length > 0) {
+                    displayResult('search-results', true, `✅ 보고서 템플릿 로드됨 (${reportTemplates.length}개)`);
+                    log(`보고서 템플릿 ${reportTemplates.length}개 확인`);
+                } else {
+                    displayResult('search-results', false, '❌ 보고서 템플릿 없음');
+                    log('보고서 템플릿 없음', 'error');
+                }
+
+                // 간단한 보고서 생성 테스트
+                try {
+                    const report = await searchEngine.generateReport('inventory_status');
+                    if (report && report.data) {
+                        displayResult('search-results', true, '✅ 보고서 생성 성공');
+                        log('보고서 생성 테스트 통과');
+                    } else {
+                        displayResult('search-results', false, '❌ 보고서 생성 실패');
+                        log('보고서 생성 테스트 실패', 'error');
+                    }
+                } catch (reportError) {
+                    displayResult('search-results', false, `❌ 보고서 생성 오류: ${reportError.message}`);
+                    log(`보고서 생성 오류: ${reportError.message}`, 'error');
+                }
+
+            } catch (error) {
+                displayResult('search-results', false, `❌ 검색 엔진 테스트 오류: ${error.message}`);
+                log(`검색 엔진 테스트 오류: ${error.message}`, 'error');
+            }
+        }
+
+        // 통합 API 테스트
+        async function testIntegratedAPI() {
+            clearResults('api-results');
+            log('통합 API 테스트 시작');
+
+            try {
+                const api = window.IntegratedAPI;
+
+                // 카테고리 API 테스트
+                const categories = await api.getCategories();
+                displayResult('api-results', true, `✅ 카테고리 API 호출 성공 (${categories.length}개)`);
+                log(`카테고리 API 테스트 통과: ${categories.length}개`);
+
+                // 품목 API 테스트
+                const items = await api.getItems();
+                displayResult('api-results', true, `✅ 품목 API 호출 성공 (${items.length}개)`);
+                log(`품목 API 테스트 통과: ${items.length}개`);
+
+                // 거래처 API 테스트
+                const suppliers = await api.getSuppliers();
+                displayResult('api-results', true, `✅ 거래처 API 호출 성공 (${suppliers.length}개)`);
+                log(`거래처 API 테스트 통과: ${suppliers.length}개`);
+
+                // 대시보드 통계 API 테스트
+                const stats = await api.getDashboardStats();
+                if (stats && typeof stats === 'object') {
+                    displayResult('api-results', true, '✅ 대시보드 통계 API 성공');
+                    log('대시보드 통계 API 테스트 통과');
+                } else {
+                    displayResult('api-results', false, '❌ 대시보드 통계 API 실패');
+                    log('대시보드 통계 API 테스트 실패', 'error');
+                }
+
+                // 알림 API 테스트
+                const notificationResult = await api.addNotification(
+                    'test_notification',
+                    '테스트 알림',
+                    '통합 API 테스트 중입니다.'
+                );
+                if (notificationResult && notificationResult.id) {
+                    displayResult('api-results', true, '✅ 알림 API 성공');
+                    log('알림 API 테스트 통과');
+                } else {
+                    displayResult('api-results', false, '❌ 알림 API 실패');
+                    log('알림 API 테스트 실패', 'error');
+                }
+
+            } catch (error) {
+                displayResult('api-results', false, `❌ 통합 API 테스트 오류: ${error.message}`);
+                log(`통합 API 테스트 오류: ${error.message}`, 'error');
+            }
+        }
+
+        // 전체 통합 테스트
+        async function runFullIntegrationTest() {
+            clearResults('full-results');
+            clearLog();
+            log('=== 전체 통합 테스트 시작 ===');
+
+            try {
+                // 모든 테스트 순차 실행
+                await testSystemInitialization();
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
+                await testDataManager();
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
+                await testRealtimeSync();
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
+                await testWorkflow();
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
+                await testSearchEngine();
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
+                await testIntegratedAPI();
+
+                // 종합 결과 분석
+                const totalTests = testResults.length;
+                const errorTests = testResults.filter(r => r.type === 'error').length;
+                const successRate = ((totalTests - errorTests) / totalTests * 100).toFixed(1);
+
+                if (errorTests === 0) {
+                    displayResult('full-results', true, `🎉 모든 테스트 통과! (${totalTests}개 테스트)`);
+                    log(`전체 테스트 완료: 성공률 ${successRate}%`);
+                } else {
+                    displayResult('full-results', false, `⚠️ ${errorTests}개 테스트 실패 (성공률: ${successRate}%)`);
+                    log(`전체 테스트 완료: ${errorTests}개 실패, 성공률 ${successRate}%`, 'error');
+                }
+
+                // 시스템 성능 측정
+                const performanceResults = measurePerformance();
+                displayResult('full-results', true, `📊 성능 측정: ${performanceResults}`);
+                log(`성능 측정 결과: ${performanceResults}`);
+
+                log('=== 전체 통합 테스트 완료 ===');
+
+            } catch (error) {
+                displayResult('full-results', false, `❌ 전체 테스트 오류: ${error.message}`);
+                log(`전체 테스트 오류: ${error.message}`, 'error');
+            }
+        }
+
+        // 성능 측정
+        function measurePerformance() {
+            const dataManager = window.IntegratedDataManager;
+            const storageUsage = dataManager.getStorageUsage();
+            
+            return `저장공간: ${storageUsage.totalMB}MB, 메모리: ${(performance.memory?.usedJSHeapSize / 1024 / 1024 || 0).toFixed(1)}MB`;
+        }
+
+        // 페이지 로드 시 자동 실행
+        window.addEventListener('load', () => {
+            log('통합 시스템 테스트 페이지 로드 완료');
+            log('개별 테스트를 실행하거나 전체 테스트를 실행하세요.');
+        });
+    </script>
+</body>
+</html>

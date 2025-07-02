@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛒 Shopping Systems - 통합 관리 대시보드</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 헤더 */
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+        }
+
+        /* 시스템 상태 표시 */
+        .system-status {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: white;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-online {
+            background: rgba(46, 204, 113, 0.8);
+        }
+
+        /* 통계 카드 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .stat-title {
+            color: #555;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .stat-change {
+            font-size: 0.8rem;
+            color: #28a745;
+        }
+
+        .stat-change.negative {
+            color: #dc3545;
+        }
+
+        /* 시스템 네비게이션 */
+        .systems-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .system-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .system-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--system-color);
+        }
+
+        .system-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .system-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .system-info h3 {
+            color: #333;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .system-info p {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .system-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            background: var(--system-color);
+        }
+
+        .system-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .system-stat {
+            text-align: center;
+        }
+
+        .system-stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--system-color);
+        }
+
+        .system-stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        /* 활동 로그 */
+        .activity-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: white;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .activity-desc {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .activity-time {
+            color: #999;
+            font-size: 0.8rem;
+        }
+
+        /* 알림 */
+        .notifications {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .notification-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-badge {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #dc3545;
+            margin-right: 15px;
+            margin-top: 8px;
+            flex-shrink: 0;
+        }
+
+        .notification-badge.read {
+            background: #6c757d;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .stats-grid,
+            .systems-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .system-stats {
+                justify-content: space-around;
+            }
+        }
+
+        /* 로딩 스피너 */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 시스템별 색상 */
+        .system-card:nth-child(1) { --system-color: #4CAF50; }
+        .system-card:nth-child(2) { --system-color: #9C27B0; }
+        .system-card:nth-child(3) { --system-color: #667eea; }
+        .system-card:nth-child(4) { --system-color: #FF9800; }
+        .system-card:nth-child(5) { --system-color: #F44336; }
+        .system-card:nth-child(6) { --system-color: #00BCD4; }
+        .system-card:nth-child(7) { --system-color: #795548; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <div class="header">
+            <h1><i class="fas fa-shopping-cart"></i> Shopping Systems</h1>
+            <p>통합 관리 시스템 대시보드 - 모든 시스템을 하나로</p>
+            <div class="system-status" id="systemStatus">
+                <div class="status-item status-online">
+                    <i class="fas fa-circle"></i>
+                    <span>시스템 정상</span>
+                </div>
+                <div class="status-item">
+                    <i class="fas fa-database"></i>
+                    <span id="dataStatus">데이터 로딩 중...</span>
+                </div>
+                <div class="status-item">
+                    <i class="fas fa-clock"></i>
+                    <span id="lastSync">동기화 확인 중...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 통계 요약 -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+
+        <!-- 시스템 네비게이션 -->
+        <div class="systems-grid" id="systemsGrid">
+            <!-- 시스템 카드들이 동적으로 생성됩니다 -->
+        </div>
+
+        <!-- 최근 활동 -->
+        <div class="activity-section">
+            <div class="activity-header">
+                <h2><i class="fas fa-history"></i> 최근 활동</h2>
+                <button class="btn btn-sm" onclick="refreshActivity()">
+                    <i class="fas fa-refresh"></i> 새로고침
+                </button>
+            </div>
+            <div id="activityList">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 알림 -->
+        <div class="notifications">
+            <div class="activity-header">
+                <h2><i class="fas fa-bell"></i> 알림</h2>
+                <button class="btn btn-sm" onclick="markAllAsRead()">
+                    <i class="fas fa-check"></i> 모두 읽음
+                </button>
+            </div>
+            <div id="notificationsList">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 통합 시스템 스크립트 -->
+    <script src="core/data-manager.js"></script>
+    <script src="core/schema-manager.js"></script>
+    <script src="core/api-interface.js"></script>
+    <script src="core/realtime-sync.js"></script>
+    <script src="core/workflow-engine.js"></script>
+    <script src="core/search-engine.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
