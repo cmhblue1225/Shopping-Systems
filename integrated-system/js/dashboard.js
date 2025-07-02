@@ -63,6 +63,9 @@ class IntegratedDashboard {
     }
 
     renderStats(stats) {
+        // KPI 대시보드 업데이트
+        this.updateKPIDashboard();
+        
         const statsGrid = document.getElementById('statsGrid');
         
         const statsCards = [
@@ -122,6 +125,46 @@ class IntegratedDashboard {
                 <div class="stat-change">${card.change}</div>
             </div>
         `).join('');
+    }
+
+    updateKPIDashboard() {
+        try {
+            // 주문 데이터에서 KPI 계산
+            const orders = this.dataManager.getData('orders') || [];
+            const customers = this.dataManager.getData('customers') || [];
+            const inventory = this.dataManager.getData('inventory') || [];
+            
+            // 총 매출
+            const totalSales = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+            document.getElementById('totalSales').textContent = `₩${totalSales.toLocaleString()}`;
+            
+            // 총 주문
+            document.getElementById('totalOrders').textContent = orders.length;
+            
+            // 활성 고객
+            const activeCustomersCount = customers.filter(c => c.isActive).length;
+            document.getElementById('activeCustomers').textContent = activeCustomersCount;
+            
+            // 위험 재고
+            const lowStockCount = inventory.filter(item => {
+                const current = item.currentStock || 0;
+                const safety = item.safetyStock || 20;
+                return current <= safety * 0.5;
+            }).length;
+            document.getElementById('lowStockItems').textContent = lowStockCount;
+            
+            // 대기 주문
+            const pendingCount = orders.filter(o => ['pending', 'paid'].includes(o.status)).length;
+            document.getElementById('pendingOrders').textContent = pendingCount;
+            
+            // 변화량 업데이트 (더미 데이터)
+            document.getElementById('salesChange').textContent = '+12.5%';
+            document.getElementById('ordersChange').textContent = `+${Math.floor(Math.random() * 10)}`;
+            document.getElementById('customersChange').textContent = `+${Math.floor(Math.random() * 5)}`;
+            
+        } catch (error) {
+            console.error('KPI 업데이트 오류:', error);
+        }
     }
 
     createSystemCards() {

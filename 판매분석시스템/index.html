@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>판매분석시스템</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header { background: #16a085; color: white; padding: 20px; border-radius: 8px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .widget { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .widget h3 { margin-bottom: 15px; color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; }
+        .metric { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .metric-value { font-size: 24px; font-weight: bold; }
+        .metric-change { font-size: 14px; padding: 4px 8px; border-radius: 4px; }
+        .positive { background: #d5f4e6; color: #27ae60; }
+        .negative { background: #fadbd8; color: #e74c3c; }
+        .neutral { background: #ebf3fd; color: #3498db; }
+        .chart-container { width: 100%; height: 300px; position: relative; background: #f8f9fa; border-radius: 5px; display: flex; align-items: center; justify-content: center; }
+        .chart-placeholder { color: #7f8c8d; font-size: 16px; }
+        .section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-success { background: #27ae60; color: white; }
+        .btn-info { background: #17a2b8; color: white; }
+        .search-box { padding: 10px; border: 1px solid #ddd; border-radius: 5px; max-width: 200px; }
+        .table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+        .table th, .table td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #ddd; }
+        .table th { background: #f8f9fa; font-weight: 600; }
+        .nav-home { position: fixed; top: 20px; right: 20px; background: #3498db; color: white; padding: 10px 15px; border-radius: 25px; text-decoration: none; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 1000; }
+        .notification { position: fixed; top: 80px; right: 20px; padding: 15px 20px; border-radius: 5px; color: white; z-index: 1001; display: none; min-width: 250px; }
+        .notification.success { background: #27ae60; }
+        .notification.info { background: #3498db; }
+        .tab-container { margin-bottom: 20px; }
+        .tab-buttons { display: flex; background: #f8f9fa; border-radius: 8px; padding: 5px; }
+        .tab-button { flex: 1; padding: 10px; border: none; background: none; cursor: pointer; border-radius: 5px; transition: all 0.3s; text-align: center; }
+        .tab-button.active { background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .period-selector { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; }
+        .ranking-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 8px; background: #f8f9fa; border-radius: 5px; }
+        .ranking-number { background: #3498db; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
+        .progress-bar { width: 100%; height: 8px; background: #ecf0f1; border-radius: 4px; margin: 5px 0; }
+        .progress-fill { height: 100%; background: #3498db; border-radius: 4px; transition: width 0.3s ease; }
+        @media (max-width: 768px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .period-selector { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <a href="../integrated-system/" class="nav-home">🏠 통합 대시보드</a>
+    
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>📊 판매분석시스템</h1>
+                <p>매출 분석 및 비즈니스 인텔리전스</p>
+            </div>
+            <div>
+                <button class="btn btn-success" onclick="generateReport()">📋 종합 리포트</button>
+                <button class="btn btn-info" onclick="exportAnalytics()">📤 데이터 내보내기</button>
+            </div>
+        </div>
+
+        <div class="period-selector">
+            <span style="font-weight: 600;">분석 기간:</span>
+            <input type="date" id="dateFrom" class="search-box">
+            <span>~</span>
+            <input type="date" id="dateTo" class="search-box">
+            <button class="btn btn-primary" onclick="updateAnalytics()">📊 분석 업데이트</button>
+            <button class="btn" onclick="setQuickPeriod('today')" style="background: #ecf0f1;">오늘</button>
+            <button class="btn" onclick="setQuickPeriod('week')" style="background: #ecf0f1;">이번주</button>
+            <button class="btn" onclick="setQuickPeriod('month')" style="background: #ecf0f1;">이번달</button>
+        </div>
+
+        <!-- 핵심 지표 대시보드 -->
+        <div class="dashboard-grid">
+            <div class="widget">
+                <h3>💰 매출 현황</h3>
+                <div class="metric">
+                    <span>총 매출</span>
+                    <div>
+                        <span class="metric-value" id="totalSales">₩0</span>
+                        <span class="metric-change positive" id="salesChange">+0%</span>
+                    </div>
+                </div>
+                <div class="metric">
+                    <span>평균 주문액</span>
+                    <span class="metric-value" id="avgOrderValue">₩0</span>
+                </div>
+                <div class="metric">
+                    <span>일평균 매출</span>
+                    <span class="metric-value" id="dailyAvgSales">₩0</span>
+                </div>
+            </div>
+
+            <div class="widget">
+                <h3>📦 주문 분석</h3>
+                <div class="metric">
+                    <span>총 주문수</span>
+                    <div>
+                        <span class="metric-value" id="totalOrders">0</span>
+                        <span class="metric-change neutral" id="ordersChange">+0%</span>
+                    </div>
+                </div>
+                <div class="metric">
+                    <span>완료율</span>
+                    <span class="metric-value" id="completionRate">0%</span>
+                </div>
+                <div class="metric">
+                    <span>취소율</span>
+                    <span class="metric-value" id="cancellationRate">0%</span>
+                </div>
+            </div>
+
+            <div class="widget">
+                <h3>👥 고객 분석</h3>
+                <div class="metric">
+                    <span>활성 고객</span>
+                    <span class="metric-value" id="activeCustomers">0</span>
+                </div>
+                <div class="metric">
+                    <span>신규 고객</span>
+                    <span class="metric-value" id="newCustomers">0</span>
+                </div>
+                <div class="metric">
+                    <span>재구매율</span>
+                    <span class="metric-value" id="retentionRate">0%</span>
+                </div>
+            </div>
+
+            <div class="widget">
+                <h3>📈 성장 지표</h3>
+                <div class="metric">
+                    <span>매출 성장률</span>
+                    <div>
+                        <span class="metric-value" id="salesGrowth">0%</span>
+                        <span class="metric-change positive" id="growthTrend">📈</span>
+                    </div>
+                </div>
+                <div class="metric">
+                    <span>고객 증가율</span>
+                    <span class="metric-value" id="customerGrowth">0%</span>
+                </div>
+                <div class="metric">
+                    <span>주문량 증가율</span>
+                    <span class="metric-value" id="orderGrowth">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 차트 섹션 -->
+        <div class="dashboard-grid">
+            <div class="widget" style="grid-column: span 2;">
+                <h3>📊 매출 추이</h3>
+                <div class="chart-container" id="salesChart">
+                    <div class="chart-placeholder">매출 추이 차트 (Chart.js 연동 필요)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 상세 분석 탭 -->
+        <div class="section">
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="switchTab('products')">상품별 분석</button>
+                    <button class="tab-button" onclick="switchTab('customers')">고객별 분석</button>
+                    <button class="tab-button" onclick="switchTab('time')">시간대별 분석</button>
+                    <button class="tab-button" onclick="switchTab('category')">카테고리 분석</button>
+                </div>
+            </div>
+
+            <!-- 상품별 분석 -->
+            <div id="products-tab" class="tab-content" style="display: block;">
+                <div class="controls">
+                    <input type="text" class="search-box" placeholder="상품명 검색..." id="productSearch">
+                    <select id="productSort" class="search-box">
+                        <option value="sales">매출 순</option>
+                        <option value="quantity">판매량 순</option>
+                        <option value="profit">수익 순</option>
+                    </select>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h4>🏆 베스트 셀러 TOP 10</h4>
+                        <div id="topProducts"></div>
+                    </div>
+                    <div>
+                        <h4>📉 판매 부진 상품</h4>
+                        <div id="lowProducts"></div>
+                    </div>
+                </div>
+
+                <table class="table" id="productAnalysisTable">
+                    <thead>
+                        <tr>
+                            <th>상품명</th>
+                            <th>판매량</th>
+                            <th>매출액</th>
+                            <th>평균단가</th>
+                            <th>수익률</th>
+                            <th>재고현황</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productAnalysisBody"></tbody>
+                </table>
+            </div>
+
+            <!-- 고객별 분석 -->
+            <div id="customers-tab" class="tab-content">
+                <div>
+                    <h4>💎 VIP 고객 분석</h4>
+                    <div id="vipCustomerAnalysis"></div>
+                </div>
+                
+                <table class="table" id="customerAnalysisTable">
+                    <thead>
+                        <tr>
+                            <th>고객명</th>
+                            <th>등급</th>
+                            <th>총 구매액</th>
+                            <th>구매횟수</th>
+                            <th>평균 주문액</th>
+                            <th>최근 구매일</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customerAnalysisBody"></tbody>
+                </table>
+            </div>
+
+            <!-- 시간대별 분석 -->
+            <div id="time-tab" class="tab-content">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h4>📅 요일별 매출</h4>
+                        <div id="weekdayAnalysis"></div>
+                    </div>
+                    <div>
+                        <h4>🕐 시간대별 매출</h4>
+                        <div id="hourAnalysis"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 카테고리 분석 -->
+            <div id="category-tab" class="tab-content">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h4>📊 카테고리별 매출 비중</h4>
+                        <div id="categoryAnalysis"></div>
+                    </div>
+                    <div>
+                        <h4>📈 카테고리 성장률</h4>
+                        <div id="categoryGrowth"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <!-- 통합 시스템 연동 -->
+    <script src="../integrated-system/core/data-manager.js"></script>
+    <script src="../integrated-system/core/schema-manager.js"></script>
+    <script src="../integrated-system/adapters/legacy-integration.js"></script>
+    
+    <script>
+        class SalesAnalyticsSystem {
+            constructor() {
+                this.dataManager = window.DataManager;
+                this.currentTab = 'products';
+                this.init();
+            }
+
+            init() {
+                this.setDefaultDates();
+                this.setupEventListeners();
+                this.updateAnalytics();
+            }
+
+            setDefaultDates() {
+                const today = new Date();
+                const oneMonthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+                
+                document.getElementById('dateFrom').value = oneMonthAgo.toISOString().split('T')[0];
+                document.getElementById('dateTo').value = today.toISOString().split('T')[0];
+            }
+
+            setupEventListeners() {
+                document.getElementById('productSearch').addEventListener('input', () => this.renderProductAnalysis());
+                document.getElementById('productSort').addEventListener('change', () => this.renderProductAnalysis());
+            }
+
+            setQuickPeriod(period) {
+                const today = new Date();
+                let fromDate;
+                
+                switch(period) {
+                    case 'today':
+                        fromDate = new Date(today);
+                        break;
+                    case 'week':
+                        fromDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+                        break;
+                    case 'month':
+                        fromDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+                        break;
+                    default:
+                        fromDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+                }
+                
+                document.getElementById('dateFrom').value = fromDate.toISOString().split('T')[0];
+                document.getElementById('dateTo').value = today.toISOString().split('T')[0];
+                this.updateAnalytics();
+            }
+
+            updateAnalytics() {
+                this.updateKPIs();
+                this.renderCurrentTab();
+                this.showNotification('분석 데이터가 업데이트되었습니다.', 'info');
+            }
+
+            updateKPIs() {
+                const orders = this.getFilteredOrders();
+                const customers = this.dataManager.getData('customers') || [];
+                
+                // 매출 현황
+                const totalSales = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+                const avgOrderValue = orders.length > 0 ? totalSales / orders.length : 0;
+                const dateRange = this.getDateRange();
+                const dailyAvgSales = dateRange > 0 ? totalSales / dateRange : 0;
+
+                // 주문 분석
+                const totalOrders = orders.length;
+                const completedOrders = orders.filter(o => o.status === 'delivered').length;
+                const cancelledOrders = orders.filter(o => o.status === 'cancelled').length;
+                const completionRate = totalOrders > 0 ? (completedOrders / totalOrders * 100) : 0;
+                const cancellationRate = totalOrders > 0 ? (cancelledOrders / totalOrders * 100) : 0;
+
+                // 고객 분석
+                const activeCustomers = customers.filter(c => c.isActive).length;
+                const thisMonth = new Date().toISOString().substring(0, 7);
+                const newCustomers = customers.filter(c => c.joinDate.substring(0, 7) === thisMonth).length;
+                const retentionRate = this.calculateRetentionRate(customers);
+
+                // UI 업데이트
+                document.getElementById('totalSales').textContent = `₩${totalSales.toLocaleString()}`;
+                document.getElementById('avgOrderValue').textContent = `₩${Math.round(avgOrderValue).toLocaleString()}`;
+                document.getElementById('dailyAvgSales').textContent = `₩${Math.round(dailyAvgSales).toLocaleString()}`;
+                
+                document.getElementById('totalOrders').textContent = totalOrders;
+                document.getElementById('completionRate').textContent = `${completionRate.toFixed(1)}%`;
+                document.getElementById('cancellationRate').textContent = `${cancellationRate.toFixed(1)}%`;
+                
+                document.getElementById('activeCustomers').textContent = activeCustomers;
+                document.getElementById('newCustomers').textContent = newCustomers;
+                document.getElementById('retentionRate').textContent = `${retentionRate.toFixed(1)}%`;
+
+                // 성장 지표 (더미 데이터)
+                document.getElementById('salesGrowth').textContent = '+12.5%';
+                document.getElementById('customerGrowth').textContent = '+8.3%';
+                document.getElementById('orderGrowth').textContent = '+15.2%';
+            }
+
+            getFilteredOrders() {
+                const orders = this.dataManager.getData('orders') || [];
+                const dateFrom = document.getElementById('dateFrom').value;
+                const dateTo = document.getElementById('dateTo').value;
+
+                return orders.filter(order => {
+                    const orderDate = order.orderDate.split('T')[0];
+                    return orderDate >= dateFrom && orderDate <= dateTo;
+                });
+            }
+
+            getDateRange() {
+                const dateFrom = new Date(document.getElementById('dateFrom').value);
+                const dateTo = new Date(document.getElementById('dateTo').value);
+                return Math.ceil((dateTo - dateFrom) / (1000 * 60 * 60 * 24)) + 1;
+            }
+
+            calculateRetentionRate(customers) {
+                const activeCustomers = customers.filter(c => c.isActive && c.purchaseCount > 1).length;
+                const totalCustomers = customers.filter(c => c.purchaseCount > 0).length;
+                return totalCustomers > 0 ? (activeCustomers / totalCustomers * 100) : 0;
+            }
+
+            switchTab(tab) {
+                this.currentTab = tab;
+                
+                // 탭 버튼 업데이트
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+                
+                // 탭 컨텐츠 업데이트
+                document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+                document.getElementById(`${tab}-tab`).style.display = 'block';
+                
+                this.renderCurrentTab();
+            }
+
+            renderCurrentTab() {
+                switch(this.currentTab) {
+                    case 'products':
+                        this.renderProductAnalysis();
+                        break;
+                    case 'customers':
+                        this.renderCustomerAnalysis();
+                        break;
+                    case 'time':
+                        this.renderTimeAnalysis();
+                        break;
+                    case 'category':
+                        this.renderCategoryAnalysis();
+                        break;
+                }
+            }
+
+            renderProductAnalysis() {
+                const orders = this.getFilteredOrders();
+                const items = this.dataManager.getData('items') || [];
+                const inventory = this.dataManager.getData('inventory') || [];
+                
+                // 상품별 판매 데이터 집계
+                const productSales = new Map();
+                
+                orders.forEach(order => {
+                    order.items.forEach(item => {
+                        const key = item.itemName;
+                        if (!productSales.has(key)) {
+                            productSales.set(key, {
+                                name: item.itemName,
+                                quantity: 0,
+                                sales: 0,
+                                avgPrice: 0
+                            });
+                        }
+                        const product = productSales.get(key);
+                        product.quantity += item.quantity;
+                        product.sales += item.totalPrice;
+                        product.avgPrice = product.sales / product.quantity;
+                    });
+                });
+
+                const productArray = Array.from(productSales.values());
+                
+                // 정렬
+                const sortBy = document.getElementById('productSort').value;
+                productArray.sort((a, b) => {
+                    switch(sortBy) {
+                        case 'quantity': return b.quantity - a.quantity;
+                        case 'profit': return b.sales - a.sales;
+                        default: return b.sales - a.sales;
+                    }
+                });
+
+                // 베스트 셀러 TOP 10
+                this.renderTopProducts(productArray.slice(0, 10));
+                
+                // 판매 부진 상품
+                this.renderLowProducts(productArray.slice(-5).reverse());
+                
+                // 상품 분석 테이블
+                this.renderProductTable(productArray);
+            }
+
+            renderTopProducts(products) {
+                const container = document.getElementById('topProducts');
+                const maxSales = products[0]?.sales || 1;
+                
+                container.innerHTML = products.map((product, index) => `
+                    <div class="ranking-item">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="ranking-number">${index + 1}</div>
+                            <div>
+                                <div style="font-weight: 600;">${product.name}</div>
+                                <div style="font-size: 12px; color: #7f8c8d;">${product.quantity}개 판매</div>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: bold;">₩${product.sales.toLocaleString()}</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${(product.sales / maxSales * 100)}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            renderLowProducts(products) {
+                const container = document.getElementById('lowProducts');
+                container.innerHTML = products.map(product => `
+                    <div class="ranking-item" style="background: #fadbd8;">
+                        <div>
+                            <div style="font-weight: 600;">${product.name}</div>
+                            <div style="font-size: 12px; color: #e74c3c;">${product.quantity}개만 판매</div>
+                        </div>
+                        <div style="text-align: right; color: #e74c3c;">
+                            ₩${product.sales.toLocaleString()}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            renderProductTable(products) {
+                const searchTerm = document.getElementById('productSearch').value.toLowerCase();
+                const filtered = products.filter(p => p.name.toLowerCase().includes(searchTerm));
+                
+                const tbody = document.getElementById('productAnalysisBody');
+                tbody.innerHTML = filtered.slice(0, 20).map(product => {
+                    const profitRate = Math.floor(Math.random() * 30) + 10; // 더미 수익률
+                    const stockStatus = Math.random() > 0.7 ? '부족' : '충분';
+                    
+                    return `
+                        <tr>
+                            <td><strong>${product.name}</strong></td>
+                            <td>${product.quantity}개</td>
+                            <td><strong>₩${product.sales.toLocaleString()}</strong></td>
+                            <td>₩${Math.round(product.avgPrice).toLocaleString()}</td>
+                            <td><span style="color: ${profitRate > 20 ? '#27ae60' : '#f39c12'}">${profitRate}%</span></td>
+                            <td><span style="color: ${stockStatus === '부족' ? '#e74c3c' : '#27ae60'}">${stockStatus}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            renderCustomerAnalysis() {
+                const customers = this.dataManager.getData('customers') || [];
+                const vipCustomers = customers.filter(c => c.grade === 'VIP').slice(0, 5);
+                
+                // VIP 고객 분석
+                const vipContainer = document.getElementById('vipCustomerAnalysis');
+                vipContainer.innerHTML = vipCustomers.map(customer => `
+                    <div class="ranking-item" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
+                        <div style="color: white;">
+                            <div style="font-weight: 600;">${customer.name}</div>
+                            <div style="font-size: 12px; opacity: 0.9;">${customer.purchaseCount}회 구매</div>
+                        </div>
+                        <div style="text-align: right; color: white;">
+                            <div style="font-weight: bold;">₩${(customer.totalPurchase || 0).toLocaleString()}</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // 고객 분석 테이블
+                const sortedCustomers = customers
+                    .filter(c => c.totalPurchase > 0)
+                    .sort((a, b) => (b.totalPurchase || 0) - (a.totalPurchase || 0))
+                    .slice(0, 20);
+
+                const tbody = document.getElementById('customerAnalysisBody');
+                tbody.innerHTML = sortedCustomers.map(customer => `
+                    <tr>
+                        <td><strong>${customer.name}</strong></td>
+                        <td><span class="grade-badge" style="background: ${this.getGradeColor(customer.grade)}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px;">${customer.grade}</span></td>
+                        <td><strong>₩${(customer.totalPurchase || 0).toLocaleString()}</strong></td>
+                        <td>${customer.purchaseCount || 0}회</td>
+                        <td>₩${customer.purchaseCount > 0 ? Math.round(customer.totalPurchase / customer.purchaseCount).toLocaleString() : '0'}</td>
+                        <td>${customer.lastPurchase ? new Date(customer.lastPurchase).toLocaleDateString('ko-KR') : '-'}</td>
+                    </tr>
+                `).join('');
+            }
+
+            getGradeColor(grade) {
+                const colors = {
+                    VIP: '#e74c3c',
+                    GOLD: '#f39c12',
+                    SILVER: '#95a5a6',
+                    BRONZE: '#8b4513'
+                };
+                return colors[grade] || '#95a5a6';
+            }
+
+            renderTimeAnalysis() {
+                // 요일별 매출 분석
+                const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+                const weekdayData = weekdays.map(day => ({
+                    day,
+                    sales: Math.floor(Math.random() * 500000) + 100000
+                }));
+                
+                const maxWeekdaySales = Math.max(...weekdayData.map(d => d.sales));
+                
+                const weekdayContainer = document.getElementById('weekdayAnalysis');
+                weekdayContainer.innerHTML = weekdayData.map(data => `
+                    <div class="ranking-item">
+                        <div style="font-weight: 600;">${data.day}요일</div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: bold;">₩${data.sales.toLocaleString()}</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${(data.sales / maxWeekdaySales * 100)}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // 시간대별 매출 분석
+                const hours = Array.from({length: 24}, (_, i) => i);
+                const hourData = hours.map(hour => ({
+                    hour: `${hour}시`,
+                    sales: Math.floor(Math.random() * 100000) + 10000
+                }));
+                
+                const maxHourSales = Math.max(...hourData.map(d => d.sales));
+                
+                const hourContainer = document.getElementById('hourAnalysis');
+                hourContainer.innerHTML = hourData.filter((_, i) => i % 2 === 0).map(data => `
+                    <div class="ranking-item">
+                        <div style="font-weight: 600;">${data.hour}</div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: bold;">₩${data.sales.toLocaleString()}</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${(data.sales / maxHourSales * 100)}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            renderCategoryAnalysis() {
+                const categories = this.dataManager.getData('categories') || [];
+                const uniqueCategories = [...new Set(categories.map(c => c.category1st))];
+                
+                const categoryData = uniqueCategories.map(category => ({
+                    name: category,
+                    sales: Math.floor(Math.random() * 1000000) + 200000,
+                    growth: (Math.random() * 40 - 10).toFixed(1)
+                }));
+                
+                const totalSales = categoryData.reduce((sum, c) => sum + c.sales, 0);
+                
+                // 카테고리별 매출 비중
+                const categoryContainer = document.getElementById('categoryAnalysis');
+                categoryContainer.innerHTML = categoryData.map(category => `
+                    <div class="ranking-item">
+                        <div style="font-weight: 600;">${category.name}</div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: bold;">₩${category.sales.toLocaleString()}</div>
+                            <div style="font-size: 12px; color: #7f8c8d;">${(category.sales / totalSales * 100).toFixed(1)}%</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${(category.sales / totalSales * 100)}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // 카테고리 성장률
+                const growthContainer = document.getElementById('categoryGrowth');
+                const sortedByGrowth = [...categoryData].sort((a, b) => parseFloat(b.growth) - parseFloat(a.growth));
+                
+                growthContainer.innerHTML = sortedByGrowth.map(category => `
+                    <div class="ranking-item">
+                        <div style="font-weight: 600;">${category.name}</div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: bold; color: ${parseFloat(category.growth) > 0 ? '#27ae60' : '#e74c3c'}">
+                                ${category.growth > 0 ? '+' : ''}${category.growth}%
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            generateReport() {
+                const orders = this.getFilteredOrders();
+                const customers = this.dataManager.getData('customers') || [];
+                
+                const report = {
+                    generatedAt: new Date().toISOString(),
+                    period: {
+                        from: document.getElementById('dateFrom').value,
+                        to: document.getElementById('dateTo').value
+                    },
+                    summary: {
+                        totalSales: orders.reduce((sum, o) => sum + o.totalAmount, 0),
+                        totalOrders: orders.length,
+                        averageOrderValue: orders.length > 0 ? orders.reduce((sum, o) => sum + o.totalAmount, 0) / orders.length : 0,
+                        activeCustomers: customers.filter(c => c.isActive).length
+                    },
+                    detailed: {
+                        orders: orders,
+                        topProducts: [], // 구현된 분석 데이터 추가
+                        customerSegments: customers.reduce((acc, c) => {
+                            acc[c.grade] = (acc[c.grade] || 0) + 1;
+                            return acc;
+                        }, {})
+                    }
+                };
+                
+                this.downloadJson(report, '판매분석보고서.json');
+                this.showNotification('종합 리포트가 생성되었습니다.', 'success');
+            }
+
+            exportAnalytics() {
+                const analytics = {
+                    exportedAt: new Date().toISOString(),
+                    orders: this.dataManager.getData('orders'),
+                    customers: this.dataManager.getData('customers'),
+                    items: this.dataManager.getData('items'),
+                    inventory: this.dataManager.getData('inventory')
+                };
+                
+                this.downloadJson(analytics, '분석데이터.json');
+                this.showNotification('분석 데이터가 내보내졌습니다.', 'success');
+            }
+
+            downloadJson(data, filename) {
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            showNotification(message, type) {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = `notification ${type}`;
+                notification.style.display = 'block';
+                
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // 전역 함수들
+        function switchTab(tab) {
+            analyticsSystem.switchTab(tab);
+        }
+
+        function setQuickPeriod(period) {
+            analyticsSystem.setQuickPeriod(period);
+        }
+
+        function updateAnalytics() {
+            analyticsSystem.updateAnalytics();
+        }
+
+        function generateReport() {
+            analyticsSystem.generateReport();
+        }
+
+        function exportAnalytics() {
+            analyticsSystem.exportAnalytics();
+        }
+
+        // 전역 변수
+        let analyticsSystem;
+
+        // DOM 로드 후 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            analyticsSystem = new SalesAnalyticsSystem();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>고객관리시스템</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1300px; margin: 0 auto; padding: 20px; }
+        .header { background: #8e44ad; color: white; padding: 20px; border-radius: 8px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }
+        .stat-value { font-size: 28px; font-weight: bold; margin-bottom: 5px; }
+        .stat-label { color: #7f8c8d; font-size: 14px; }
+        .vip { color: #f39c12; }
+        .regular { color: #3498db; }
+        .new { color: #27ae60; }
+        .section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-success { background: #27ae60; color: white; }
+        .btn-warning { background: #f39c12; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-info { background: #17a2b8; color: white; }
+        .search-box { padding: 10px; border: 1px solid #ddd; border-radius: 5px; flex: 1; max-width: 250px; }
+        .table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+        .table th, .table td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #ddd; }
+        .table th { background: #f8f9fa; font-weight: 600; position: sticky; top: 0; }
+        .grade-badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .nav-home { position: fixed; top: 20px; right: 20px; background: #3498db; color: white; padding: 10px 15px; border-radius: 25px; text-decoration: none; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 1000; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal-content { background: white; margin: 3% auto; padding: 20px; width: 90%; max-width: 600px; border-radius: 8px; max-height: 85vh; overflow-y: auto; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .notification { position: fixed; top: 80px; right: 20px; padding: 15px 20px; border-radius: 5px; color: white; z-index: 1001; display: none; min-width: 250px; }
+        .notification.success { background: #27ae60; }
+        .notification.error { background: #e74c3c; }
+        .notification.info { background: #3498db; }
+        .customer-detail { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .purchase-history { max-height: 200px; overflow-y: auto; }
+        .tab-container { margin-bottom: 20px; }
+        .tab-buttons { display: flex; background: #f8f9fa; border-radius: 8px; padding: 5px; }
+        .tab-button { flex: 1; padding: 10px; border: none; background: none; cursor: pointer; border-radius: 5px; transition: all 0.3s; }
+        .tab-button.active { background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <a href="../integrated-system/" class="nav-home">🏠 통합 대시보드</a>
+    
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>👥 고객관리시스템</h1>
+                <p>고객 정보 및 구매 이력 통합 관리</p>
+            </div>
+            <div>
+                <button class="btn btn-success" onclick="openCustomerModal()">+ 신규 고객</button>
+                <button class="btn btn-info" onclick="exportCustomers()">📊 고객 리포트</button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalCustomers">0</div>
+                <div class="stat-label">총 고객 수</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value vip" id="vipCustomers">0</div>
+                <div class="stat-label">VIP 고객</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value new" id="newCustomers">0</div>
+                <div class="stat-label">이달 신규 고객</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgPurchase">₩0</div>
+                <div class="stat-label">평균 구매 금액</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value regular" id="activeCustomers">0</div>
+                <div class="stat-label">활성 고객</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="switchTab('all')">전체 고객</button>
+                    <button class="tab-button" onclick="switchTab('vip')">VIP</button>
+                    <button class="tab-button" onclick="switchTab('regular')">일반</button>
+                    <button class="tab-button" onclick="switchTab('new')">신규</button>
+                    <button class="tab-button" onclick="switchTab('inactive')">비활성</button>
+                </div>
+            </div>
+
+            <div class="controls">
+                <input type="text" class="search-box" placeholder="이름, 전화번호, 이메일로 검색..." id="searchInput">
+                <select id="gradeFilter" class="search-box" style="max-width: 120px;">
+                    <option value="">전체 등급</option>
+                    <option value="VIP">VIP</option>
+                    <option value="GOLD">GOLD</option>
+                    <option value="SILVER">SILVER</option>
+                    <option value="BRONZE">BRONZE</option>
+                </select>
+                <select id="regionFilter" class="search-box" style="max-width: 120px;">
+                    <option value="">전체 지역</option>
+                    <option value="서울">서울</option>
+                    <option value="경기">경기</option>
+                    <option value="인천">인천</option>
+                    <option value="부산">부산</option>
+                    <option value="기타">기타</option>
+                </select>
+                <button class="btn btn-primary" onclick="refreshCustomers()">🔄 새로고침</button>
+            </div>
+
+            <div style="max-height: 600px; overflow-y: auto;">
+                <table class="table" id="customersTable">
+                    <thead>
+                        <tr>
+                            <th>고객번호</th>
+                            <th>이름</th>
+                            <th>연락처</th>
+                            <th>이메일</th>
+                            <th>등급</th>
+                            <th>가입일</th>
+                            <th>총 구매액</th>
+                            <th>구매횟수</th>
+                            <th>최근구매</th>
+                            <th>액션</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customersTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 고객 정보 모달 -->
+    <div id="customerModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">신규 고객 등록</h3>
+            <form id="customerForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>이름 *</label>
+                        <input type="text" id="customerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>연락처 *</label>
+                        <input type="tel" id="customerPhone" required>
+                    </div>
+                    <div class="form-group">
+                        <label>이메일</label>
+                        <input type="email" id="customerEmail">
+                    </div>
+                    <div class="form-group">
+                        <label>생년월일</label>
+                        <input type="date" id="customerBirth">
+                    </div>
+                    <div class="form-group">
+                        <label>성별</label>
+                        <select id="customerGender">
+                            <option value="">선택하세요</option>
+                            <option value="M">남성</option>
+                            <option value="F">여성</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>고객등급</label>
+                        <select id="customerGrade">
+                            <option value="BRONZE">BRONZE</option>
+                            <option value="SILVER">SILVER</option>
+                            <option value="GOLD">GOLD</option>
+                            <option value="VIP">VIP</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>주소</label>
+                    <textarea id="customerAddress" rows="2" placeholder="상세 주소를 입력하세요"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>메모</label>
+                    <textarea id="customerMemo" rows="3" placeholder="고객 관련 메모를 입력하세요"></textarea>
+                </div>
+
+                <div class="controls" style="margin-top: 20px;">
+                    <button type="submit" class="btn btn-success">저장</button>
+                    <button type="button" class="btn" onclick="closeCustomerModal()">취소</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 고객 상세 정보 모달 -->
+    <div id="customerDetailModal" class="modal">
+        <div class="modal-content">
+            <h3>고객 상세 정보</h3>
+            <div id="customerDetailContent">
+                <!-- 동적으로 생성됨 -->
+            </div>
+            <div class="controls" style="margin-top: 20px;">
+                <button type="button" class="btn btn-primary" onclick="editCustomer()">수정</button>
+                <button type="button" class="btn" onclick="closeDetailModal()">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <!-- 통합 시스템 연동 -->
+    <script src="../integrated-system/core/data-manager.js"></script>
+    <script src="../integrated-system/core/schema-manager.js"></script>
+    <script src="../integrated-system/adapters/legacy-integration.js"></script>
+    
+    <script>
+        class CustomerManagementSystem {
+            constructor() {
+                this.dataManager = window.DataManager;
+                this.currentTab = 'all';
+                this.currentCustomer = null;
+                this.init();
+            }
+
+            init() {
+                this.generateSampleCustomers();
+                this.setupEventListeners();
+                this.updateStats();
+                this.renderCustomers();
+            }
+
+            generateSampleCustomers() {
+                const customers = this.dataManager.getData('customers') || [];
+                if (customers.length === 0) {
+                    const grades = ['BRONZE', 'SILVER', 'GOLD', 'VIP'];
+                    const regions = ['서울', '경기', '인천', '부산', '기타'];
+                    const genders = ['M', 'F'];
+                    const sampleCustomers = [];
+
+                    // 주문 데이터에서 고객 정보 생성
+                    const orders = this.dataManager.getData('orders') || [];
+                    const uniqueCustomers = new Map();
+
+                    orders.forEach(order => {
+                        if (!uniqueCustomers.has(order.customerName)) {
+                            uniqueCustomers.set(order.customerName, {
+                                name: order.customerName,
+                                phone: order.customerPhone,
+                                email: order.customerEmail,
+                                totalAmount: order.totalAmount,
+                                orderCount: 1,
+                                lastOrderDate: order.orderDate
+                            });
+                        } else {
+                            const customer = uniqueCustomers.get(order.customerName);
+                            customer.totalAmount += order.totalAmount;
+                            customer.orderCount += 1;
+                            if (new Date(order.orderDate) > new Date(customer.lastOrderDate)) {
+                                customer.lastOrderDate = order.orderDate;
+                            }
+                        }
+                    });
+
+                    // 고객 데이터 생성
+                    let customerId = 1;
+                    uniqueCustomers.forEach((customerData, name) => {
+                        const joinDate = new Date();
+                        joinDate.setDate(joinDate.getDate() - Math.floor(Math.random() * 365));
+                        
+                        const birth = new Date();
+                        birth.setFullYear(birth.getFullYear() - (Math.floor(Math.random() * 40) + 20));
+
+                        // 구매액에 따른 등급 결정
+                        let grade = 'BRONZE';
+                        if (customerData.totalAmount >= 1000000) grade = 'VIP';
+                        else if (customerData.totalAmount >= 500000) grade = 'GOLD';
+                        else if (customerData.totalAmount >= 200000) grade = 'SILVER';
+
+                        sampleCustomers.push({
+                            customerId: `CUST${String(customerId).padStart(6, '0')}`,
+                            name: customerData.name,
+                            phone: customerData.phone,
+                            email: customerData.email,
+                            gender: genders[Math.floor(Math.random() * genders.length)],
+                            birth: birth.toISOString().split('T')[0],
+                            grade: grade,
+                            region: regions[Math.floor(Math.random() * regions.length)],
+                            address: `${regions[Math.floor(Math.random() * regions.length)]} ${regions[Math.floor(Math.random() * regions.length)]}구 ${Math.floor(Math.random() * 900) + 100}번길`,
+                            joinDate: joinDate.toISOString(),
+                            totalPurchase: customerData.totalAmount,
+                            purchaseCount: customerData.orderCount,
+                            lastPurchase: customerData.lastOrderDate,
+                            isActive: Math.random() > 0.1,
+                            memo: `${grade} 등급 고객`,
+                            createdAt: joinDate.toISOString(),
+                            updatedAt: new Date().toISOString()
+                        });
+                        customerId++;
+                    });
+
+                    // 추가 샘플 고객 생성
+                    for (let i = customerId; i <= 100; i++) {
+                        const joinDate = new Date();
+                        joinDate.setDate(joinDate.getDate() - Math.floor(Math.random() * 365));
+                        
+                        const birth = new Date();
+                        birth.setFullYear(birth.getFullYear() - (Math.floor(Math.random() * 40) + 20));
+
+                        const totalPurchase = Math.floor(Math.random() * 500000);
+                        const purchaseCount = Math.floor(Math.random() * 20);
+                        
+                        let grade = grades[Math.floor(Math.random() * grades.length)];
+
+                        sampleCustomers.push({
+                            customerId: `CUST${String(i).padStart(6, '0')}`,
+                            name: `고객${i}`,
+                            phone: `010-${String(Math.floor(Math.random() * 9000) + 1000)}-${String(Math.floor(Math.random() * 9000) + 1000)}`,
+                            email: `customer${i}@email.com`,
+                            gender: genders[Math.floor(Math.random() * genders.length)],
+                            birth: birth.toISOString().split('T')[0],
+                            grade: grade,
+                            region: regions[Math.floor(Math.random() * regions.length)],
+                            address: `${regions[Math.floor(Math.random() * regions.length)]} ${regions[Math.floor(Math.random() * regions.length)]}구 ${Math.floor(Math.random() * 900) + 100}번길`,
+                            joinDate: joinDate.toISOString(),
+                            totalPurchase: totalPurchase,
+                            purchaseCount: purchaseCount,
+                            lastPurchase: purchaseCount > 0 ? joinDate.toISOString() : null,
+                            isActive: Math.random() > 0.15,
+                            memo: `${grade} 등급 고객`,
+                            createdAt: joinDate.toISOString(),
+                            updatedAt: new Date().toISOString()
+                        });
+                    }
+
+                    this.dataManager.setData('customers', sampleCustomers);
+                }
+            }
+
+            setupEventListeners() {
+                document.getElementById('customerForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveCustomer();
+                });
+
+                document.getElementById('searchInput').addEventListener('input', () => this.renderCustomers());
+                document.getElementById('gradeFilter').addEventListener('change', () => this.renderCustomers());
+                document.getElementById('regionFilter').addEventListener('change', () => this.renderCustomers());
+            }
+
+            updateStats() {
+                const customers = this.dataManager.getData('customers') || [];
+                const thisMonth = new Date().toISOString().substring(0, 7);
+                
+                const total = customers.length;
+                const vip = customers.filter(c => c.grade === 'VIP').length;
+                const newThisMonth = customers.filter(c => c.joinDate.substring(0, 7) === thisMonth).length;
+                const active = customers.filter(c => c.isActive).length;
+                const avgPurchase = customers.length > 0 ? 
+                    customers.reduce((sum, c) => sum + (c.totalPurchase || 0), 0) / customers.length : 0;
+
+                document.getElementById('totalCustomers').textContent = total;
+                document.getElementById('vipCustomers').textContent = vip;
+                document.getElementById('newCustomers').textContent = newThisMonth;
+                document.getElementById('activeCustomers').textContent = active;
+                document.getElementById('avgPurchase').textContent = `₩${Math.round(avgPurchase).toLocaleString()}`;
+            }
+
+            getGradeBadge(grade) {
+                const badges = {
+                    VIP: '<span class="grade-badge" style="background:#e74c3c;color:white">VIP</span>',
+                    GOLD: '<span class="grade-badge" style="background:#f39c12;color:white">GOLD</span>',
+                    SILVER: '<span class="grade-badge" style="background:#95a5a6;color:white">SILVER</span>',
+                    BRONZE: '<span class="grade-badge" style="background:#8b4513;color:white">BRONZE</span>'
+                };
+                return badges[grade] || badges.BRONZE;
+            }
+
+            renderCustomers() {
+                const customers = this.dataManager.getData('customers') || [];
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                const gradeFilter = document.getElementById('gradeFilter').value;
+                const regionFilter = document.getElementById('regionFilter').value;
+
+                let filtered = customers.filter(customer => {
+                    const matchesSearch = customer.name.toLowerCase().includes(searchTerm) ||
+                                        customer.phone.includes(searchTerm) ||
+                                        customer.email.toLowerCase().includes(searchTerm);
+                    const matchesGrade = !gradeFilter || customer.grade === gradeFilter;
+                    const matchesRegion = !regionFilter || customer.region === regionFilter;
+                    
+                    const matchesTab = this.currentTab === 'all' ||
+                                     (this.currentTab === 'vip' && customer.grade === 'VIP') ||
+                                     (this.currentTab === 'regular' && customer.grade !== 'VIP') ||
+                                     (this.currentTab === 'new' && new Date(customer.joinDate).getMonth() === new Date().getMonth()) ||
+                                     (this.currentTab === 'inactive' && !customer.isActive);
+
+                    return matchesSearch && matchesGrade && matchesRegion && matchesTab;
+                });
+
+                // 최신 가입 순으로 정렬
+                filtered.sort((a, b) => new Date(b.joinDate) - new Date(a.joinDate));
+
+                const tbody = document.getElementById('customersTableBody');
+                tbody.innerHTML = filtered.map(customer => `
+                    <tr style="${!customer.isActive ? 'opacity: 0.6;' : ''}">
+                        <td><strong>${customer.customerId}</strong></td>
+                        <td>${customer.name}</td>
+                        <td>${customer.phone}</td>
+                        <td><small>${customer.email}</small></td>
+                        <td>${this.getGradeBadge(customer.grade)}</td>
+                        <td>${new Date(customer.joinDate).toLocaleDateString('ko-KR')}</td>
+                        <td><strong>₩${(customer.totalPurchase || 0).toLocaleString()}</strong></td>
+                        <td>${customer.purchaseCount || 0}회</td>
+                        <td>${customer.lastPurchase ? new Date(customer.lastPurchase).toLocaleDateString('ko-KR') : '-'}</td>
+                        <td>
+                            <button class="btn btn-primary" style="padding:5px 8px;font-size:11px;margin:2px;" 
+                                    onclick="customerSystem.viewCustomer('${customer.customerId}')">상세</button>
+                            <button class="btn btn-warning" style="padding:5px 8px;font-size:11px;margin:2px;" 
+                                    onclick="customerSystem.editCustomer('${customer.customerId}')">수정</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            switchTab(tab) {
+                this.currentTab = tab;
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+                this.renderCustomers();
+            }
+
+            viewCustomer(customerId) {
+                const customers = this.dataManager.getData('customers') || [];
+                const customer = customers.find(c => c.customerId === customerId);
+                if (!customer) return;
+
+                // 구매 이력 조회
+                const orders = this.dataManager.getData('orders') || [];
+                const customerOrders = orders.filter(o => o.customerName === customer.name);
+
+                const detailContent = `
+                    <div class="customer-detail">
+                        <h4>기본 정보</h4>
+                        <p><strong>고객번호:</strong> ${customer.customerId}</p>
+                        <p><strong>이름:</strong> ${customer.name}</p>
+                        <p><strong>연락처:</strong> ${customer.phone}</p>
+                        <p><strong>이메일:</strong> ${customer.email}</p>
+                        <p><strong>생년월일:</strong> ${customer.birth || '-'}</p>
+                        <p><strong>성별:</strong> ${customer.gender === 'M' ? '남성' : customer.gender === 'F' ? '여성' : '-'}</p>
+                        <p><strong>등급:</strong> ${customer.grade}</p>
+                        <p><strong>지역:</strong> ${customer.region}</p>
+                        <p><strong>주소:</strong> ${customer.address}</p>
+                        <p><strong>가입일:</strong> ${new Date(customer.joinDate).toLocaleString('ko-KR')}</p>
+                        <p><strong>상태:</strong> ${customer.isActive ? '활성' : '비활성'}</p>
+                        <p><strong>메모:</strong> ${customer.memo || '-'}</p>
+                    </div>
+                    
+                    <div class="customer-detail">
+                        <h4>구매 통계</h4>
+                        <p><strong>총 구매액:</strong> ₩${(customer.totalPurchase || 0).toLocaleString()}</p>
+                        <p><strong>구매 횟수:</strong> ${customer.purchaseCount || 0}회</p>
+                        <p><strong>평균 구매액:</strong> ₩${customer.purchaseCount > 0 ? Math.round(customer.totalPurchase / customer.purchaseCount).toLocaleString() : '0'}</p>
+                        <p><strong>최근 구매:</strong> ${customer.lastPurchase ? new Date(customer.lastPurchase).toLocaleString('ko-KR') : '-'}</p>
+                    </div>
+                    
+                    <div class="customer-detail">
+                        <h4>구매 이력 (최근 10건)</h4>
+                        <div class="purchase-history">
+                            ${customerOrders.length > 0 ? customerOrders.slice(0, 10).map(order => `
+                                <p style="margin: 5px 0; padding: 5px; background: white; border-radius: 3px;">
+                                    <strong>${order.orderId}</strong> - ₩${order.totalAmount.toLocaleString()} 
+                                    <small>(${new Date(order.orderDate).toLocaleDateString('ko-KR')})</small>
+                                </p>
+                            `).join('') : '<p>구매 이력이 없습니다.</p>'}
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('customerDetailContent').innerHTML = detailContent;
+                document.getElementById('customerDetailModal').style.display = 'block';
+                this.currentCustomer = customer;
+            }
+
+            editCustomer(customerId) {
+                const customers = this.dataManager.getData('customers') || [];
+                const customer = customers.find(c => c.customerId === customerId);
+                if (!customer) return;
+
+                // 폼에 데이터 입력
+                document.getElementById('customerName').value = customer.name;
+                document.getElementById('customerPhone').value = customer.phone;
+                document.getElementById('customerEmail').value = customer.email;
+                document.getElementById('customerBirth').value = customer.birth || '';
+                document.getElementById('customerGender').value = customer.gender || '';
+                document.getElementById('customerGrade').value = customer.grade;
+                document.getElementById('customerAddress').value = customer.address || '';
+                document.getElementById('customerMemo').value = customer.memo || '';
+
+                document.getElementById('modalTitle').textContent = '고객 정보 수정';
+                document.getElementById('customerModal').style.display = 'block';
+                this.currentCustomer = customer;
+            }
+
+            saveCustomer() {
+                const customers = this.dataManager.getData('customers') || [];
+                const customerData = {
+                    name: document.getElementById('customerName').value,
+                    phone: document.getElementById('customerPhone').value,
+                    email: document.getElementById('customerEmail').value,
+                    birth: document.getElementById('customerBirth').value,
+                    gender: document.getElementById('customerGender').value,
+                    grade: document.getElementById('customerGrade').value,
+                    address: document.getElementById('customerAddress').value,
+                    memo: document.getElementById('customerMemo').value,
+                    updatedAt: new Date().toISOString()
+                };
+
+                if (this.currentCustomer) {
+                    // 수정
+                    const index = customers.findIndex(c => c.customerId === this.currentCustomer.customerId);
+                    if (index !== -1) {
+                        customers[index] = { ...customers[index], ...customerData };
+                        this.showNotification('고객 정보가 수정되었습니다.', 'success');
+                    }
+                } else {
+                    // 신규 등록
+                    const newCustomer = {
+                        ...customerData,
+                        customerId: this.generateCustomerId(),
+                        region: this.extractRegion(customerData.address),
+                        joinDate: new Date().toISOString(),
+                        totalPurchase: 0,
+                        purchaseCount: 0,
+                        lastPurchase: null,
+                        isActive: true,
+                        createdAt: new Date().toISOString()
+                    };
+                    customers.unshift(newCustomer);
+                    this.showNotification('신규 고객이 등록되었습니다.', 'success');
+                }
+
+                this.dataManager.setData('customers', customers);
+                this.updateStats();
+                this.renderCustomers();
+                this.closeCustomerModal();
+            }
+
+            generateCustomerId() {
+                const customers = this.dataManager.getData('customers') || [];
+                const maxId = customers.length > 0 ?
+                    Math.max(...customers.map(c => parseInt(c.customerId.replace('CUST', '')))) : 0;
+                return `CUST${String(maxId + 1).padStart(6, '0')}`;
+            }
+
+            extractRegion(address) {
+                if (!address) return '기타';
+                if (address.includes('서울')) return '서울';
+                if (address.includes('경기')) return '경기';
+                if (address.includes('인천')) return '인천';
+                if (address.includes('부산')) return '부산';
+                return '기타';
+            }
+
+            openCustomerModal() {
+                document.getElementById('customerModal').style.display = 'block';
+                document.getElementById('customerForm').reset();
+                document.getElementById('modalTitle').textContent = '신규 고객 등록';
+                this.currentCustomer = null;
+            }
+
+            closeCustomerModal() {
+                document.getElementById('customerModal').style.display = 'none';
+                this.currentCustomer = null;
+            }
+
+            closeDetailModal() {
+                document.getElementById('customerDetailModal').style.display = 'none';
+                this.currentCustomer = null;
+            }
+
+            refreshCustomers() {
+                this.updateStats();
+                this.renderCustomers();
+                this.showNotification('고객 목록이 새로고침되었습니다.', 'info');
+            }
+
+            exportCustomers() {
+                const customers = this.dataManager.getData('customers') || [];
+                const report = {
+                    generatedAt: new Date().toISOString(),
+                    summary: {
+                        totalCustomers: customers.length,
+                        vipCustomers: customers.filter(c => c.grade === 'VIP').length,
+                        activeCustomers: customers.filter(c => c.isActive).length,
+                        totalPurchaseValue: customers.reduce((sum, c) => sum + (c.totalPurchase || 0), 0)
+                    },
+                    customers: customers
+                };
+                
+                this.downloadJson(report, '고객현황보고서.json');
+                this.showNotification('고객 리포트가 생성되었습니다.', 'success');
+            }
+
+            downloadJson(data, filename) {
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            showNotification(message, type) {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = `notification ${type}`;
+                notification.style.display = 'block';
+                
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // 전역 함수들
+        function switchTab(tab) {
+            customerSystem.switchTab(tab);
+        }
+
+        function openCustomerModal() {
+            customerSystem.openCustomerModal();
+        }
+
+        function closeCustomerModal() {
+            customerSystem.closeCustomerModal();
+        }
+
+        function closeDetailModal() {
+            customerSystem.closeDetailModal();
+        }
+
+        function editCustomer() {
+            if (customerSystem.currentCustomer) {
+                customerSystem.closeDetailModal();
+                customerSystem.editCustomer(customerSystem.currentCustomer.customerId);
+            }
+        }
+
+        function refreshCustomers() {
+            customerSystem.refreshCustomers();
+        }
+
+        function exportCustomers() {
+            customerSystem.exportCustomers();
+        }
+
+        // 전역 변수
+        let customerSystem;
+
+        // DOM 로드 후 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            customerSystem = new CustomerManagementSystem();
+        });
+
+        // 모달 외부 클릭 시 닫기
+        window.onclick = function(event) {
+            const customerModal = document.getElementById('customerModal');
+            const detailModal = document.getElementById('customerDetailModal');
+            if (event.target === customerModal) {
+                closeCustomerModal();
+            }
+            if (event.target === detailModal) {
+                closeDetailModal();
+            }
+        }
+    </script>
+</body>
+</html>

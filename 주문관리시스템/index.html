@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주문관리시스템</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header { background: #34495e; color: white; padding: 20px; border-radius: 8px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }
+        .stat-value { font-size: 28px; font-weight: bold; margin-bottom: 5px; }
+        .stat-label { color: #7f8c8d; font-size: 14px; }
+        .pending { color: #f39c12; }
+        .processing { color: #3498db; }
+        .completed { color: #27ae60; }
+        .cancelled { color: #e74c3c; }
+        .section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-success { background: #27ae60; color: white; }
+        .btn-warning { background: #f39c12; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-info { background: #17a2b8; color: white; }
+        .search-box { padding: 10px; border: 1px solid #ddd; border-radius: 5px; flex: 1; max-width: 250px; }
+        .table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+        .table th, .table td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #ddd; }
+        .table th { background: #f8f9fa; font-weight: 600; position: sticky; top: 0; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .nav-home { position: fixed; top: 20px; right: 20px; background: #3498db; color: white; padding: 10px 15px; border-radius: 25px; text-decoration: none; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 1000; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal-content { background: white; margin: 2% auto; padding: 20px; width: 90%; max-width: 800px; border-radius: 8px; max-height: 90vh; overflow-y: auto; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .order-items { margin-top: 20px; }
+        .item-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .notification { position: fixed; top: 80px; right: 20px; padding: 15px 20px; border-radius: 5px; color: white; z-index: 1001; display: none; min-width: 250px; }
+        .notification.success { background: #27ae60; }
+        .notification.error { background: #e74c3c; }
+        .notification.info { background: #3498db; }
+        .tab-container { margin-bottom: 20px; }
+        .tab-buttons { display: flex; background: #f8f9fa; border-radius: 8px; padding: 5px; }
+        .tab-button { flex: 1; padding: 10px; border: none; background: none; cursor: pointer; border-radius: 5px; transition: all 0.3s; }
+        .tab-button.active { background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .item-row { grid-template-columns: 1fr; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <a href="../integrated-system/" class="nav-home">🏠 통합 대시보드</a>
+    
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>🛒 주문관리시스템</h1>
+                <p>주문 접수부터 배송 완료까지 통합 관리</p>
+            </div>
+            <div>
+                <button class="btn btn-success" onclick="openOrderModal()">+ 새 주문</button>
+                <button class="btn btn-info" onclick="exportOrders()">📊 주문 리포트</button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value pending" id="pendingOrders">0</div>
+                <div class="stat-label">대기 중인 주문</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value processing" id="processingOrders">0</div>
+                <div class="stat-label">처리 중인 주문</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value completed" id="completedOrders">0</div>
+                <div class="stat-label">완료된 주문</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="todaySales">₩0</div>
+                <div class="stat-label">오늘 매출</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgOrderValue">₩0</div>
+                <div class="stat-label">평균 주문 금액</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="switchTab('all')">전체 주문</button>
+                    <button class="tab-button" onclick="switchTab('pending')">대기</button>
+                    <button class="tab-button" onclick="switchTab('processing')">처리중</button>
+                    <button class="tab-button" onclick="switchTab('shipping')">배송중</button>
+                    <button class="tab-button" onclick="switchTab('completed')">완료</button>
+                </div>
+            </div>
+
+            <div class="controls">
+                <input type="text" class="search-box" placeholder="주문번호 또는 고객명 검색..." id="searchInput">
+                <input type="date" class="search-box" id="dateFrom" style="max-width: 150px;">
+                <input type="date" class="search-box" id="dateTo" style="max-width: 150px;">
+                <select id="statusFilter" class="search-box" style="max-width: 120px;">
+                    <option value="">전체 상태</option>
+                    <option value="pending">주문접수</option>
+                    <option value="paid">결제완료</option>
+                    <option value="preparing">상품준비</option>
+                    <option value="shipping">배송중</option>
+                    <option value="delivered">배송완료</option>
+                    <option value="cancelled">주문취소</option>
+                </select>
+                <button class="btn btn-primary" onclick="refreshOrders()">🔄 새로고침</button>
+            </div>
+
+            <div style="max-height: 600px; overflow-y: auto;">
+                <table class="table" id="ordersTable">
+                    <thead>
+                        <tr>
+                            <th>주문번호</th>
+                            <th>주문일시</th>
+                            <th>고객명</th>
+                            <th>상품수</th>
+                            <th>주문금액</th>
+                            <th>결제방법</th>
+                            <th>상태</th>
+                            <th>배송주소</th>
+                            <th>액션</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 주문 생성/수정 모달 -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">새 주문 생성</h3>
+            <form id="orderForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>고객명 *</label>
+                        <input type="text" id="customerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>연락처 *</label>
+                        <input type="tel" id="customerPhone" required>
+                    </div>
+                    <div class="form-group">
+                        <label>이메일</label>
+                        <input type="email" id="customerEmail">
+                    </div>
+                    <div class="form-group">
+                        <label>결제방법 *</label>
+                        <select id="paymentMethod" required>
+                            <option value="">선택하세요</option>
+                            <option value="card">신용카드</option>
+                            <option value="bank">계좌이체</option>
+                            <option value="cash">현금</option>
+                            <option value="point">포인트</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>배송주소 *</label>
+                    <textarea id="shippingAddress" rows="3" required placeholder="상세 주소를 입력하세요"></textarea>
+                </div>
+
+                <div class="order-items">
+                    <h4>주문 상품</h4>
+                    <div id="orderItemsList">
+                        <div class="item-row">
+                            <select class="item-select" required>
+                                <option value="">상품을 선택하세요</option>
+                            </select>
+                            <input type="number" placeholder="수량" min="1" class="item-qty" required>
+                            <input type="number" placeholder="단가" class="item-price" required>
+                            <input type="number" placeholder="총액" class="item-total" readonly>
+                            <button type="button" class="btn btn-danger" onclick="removeItem(this)" style="padding:5px;">-</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="addOrderItem()">+ 상품 추가</button>
+                </div>
+
+                <div class="form-group" style="margin-top: 20px;">
+                    <div style="text-align: right; font-size: 18px; font-weight: bold;">
+                        총 주문금액: <span id="totalAmount">₩0</span>
+                    </div>
+                </div>
+
+                <div class="controls" style="margin-top: 20px;">
+                    <button type="submit" class="btn btn-success">주문 저장</button>
+                    <button type="button" class="btn" onclick="closeOrderModal()">취소</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <!-- 통합 시스템 연동 -->
+    <script src="../integrated-system/core/data-manager.js"></script>
+    <script src="../integrated-system/core/schema-manager.js"></script>
+    <script src="../integrated-system/adapters/legacy-integration.js"></script>
+    
+    <script>
+        class OrderManagementSystem {
+            constructor() {
+                this.dataManager = window.DataManager;
+                this.currentTab = 'all';
+                this.init();
+            }
+
+            init() {
+                this.generateSampleOrders();
+                this.loadItemsToSelect();
+                this.setupEventListeners();
+                this.updateStats();
+                this.renderOrders();
+                this.setDefaultDates();
+            }
+
+            generateSampleOrders() {
+                const orders = this.dataManager.getData('orders') || [];
+                if (orders.length === 0) {
+                    const statuses = ['pending', 'paid', 'preparing', 'shipping', 'delivered'];
+                    const paymentMethods = ['card', 'bank', 'cash'];
+                    const sampleOrders = [];
+
+                    for (let i = 1; i <= 50; i++) {
+                        const orderDate = new Date();
+                        orderDate.setDate(orderDate.getDate() - Math.floor(Math.random() * 30));
+                        
+                        const itemCount = Math.floor(Math.random() * 3) + 1;
+                        const items = [];
+                        let totalAmount = 0;
+
+                        for (let j = 0; j < itemCount; j++) {
+                            const qty = Math.floor(Math.random() * 5) + 1;
+                            const price = (Math.floor(Math.random() * 50) + 10) * 1000;
+                            items.push({
+                                itemName: `상품${j + 1}`,
+                                quantity: qty,
+                                unitPrice: price,
+                                totalPrice: qty * price
+                            });
+                            totalAmount += qty * price;
+                        }
+
+                        sampleOrders.push({
+                            orderId: `ORD${String(i).padStart(6, '0')}`,
+                            orderDate: orderDate.toISOString(),
+                            customerName: `고객${i}`,
+                            customerPhone: `010-${String(Math.floor(Math.random() * 9000) + 1000)}-${String(Math.floor(Math.random() * 9000) + 1000)}`,
+                            customerEmail: `customer${i}@email.com`,
+                            items: items,
+                            totalAmount: totalAmount,
+                            paymentMethod: paymentMethods[Math.floor(Math.random() * paymentMethods.length)],
+                            status: statuses[Math.floor(Math.random() * statuses.length)],
+                            shippingAddress: `서울시 강남구 테헤란로 ${Math.floor(Math.random() * 900) + 100}`,
+                            createdAt: orderDate.toISOString(),
+                            updatedAt: orderDate.toISOString()
+                        });
+                    }
+
+                    this.dataManager.setData('orders', sampleOrders);
+                }
+            }
+
+            loadItemsToSelect() {
+                const items = this.dataManager.getData('items') || [];
+                const selects = document.querySelectorAll('.item-select');
+                
+                selects.forEach(select => {
+                    select.innerHTML = '<option value="">상품을 선택하세요</option>';
+                    items.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.itemCode;
+                        option.textContent = `${item.itemName} - ₩${(item.unitPrice || 10000).toLocaleString()}`;
+                        option.dataset.price = item.unitPrice || 10000;
+                        select.appendChild(option);
+                    });
+                });
+            }
+
+            setupEventListeners() {
+                document.getElementById('orderForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveOrder();
+                });
+
+                document.getElementById('searchInput').addEventListener('input', () => this.renderOrders());
+                document.getElementById('statusFilter').addEventListener('change', () => this.renderOrders());
+                document.getElementById('dateFrom').addEventListener('change', () => this.renderOrders());
+                document.getElementById('dateTo').addEventListener('change', () => this.renderOrders());
+
+                // 주문 상품 계산
+                document.addEventListener('change', (e) => {
+                    if (e.target.classList.contains('item-select') || e.target.classList.contains('item-qty')) {
+                        this.calculateItemTotal(e.target);
+                    }
+                });
+
+                document.addEventListener('input', (e) => {
+                    if (e.target.classList.contains('item-price') || e.target.classList.contains('item-qty')) {
+                        this.calculateItemTotal(e.target);
+                    }
+                });
+            }
+
+            setDefaultDates() {
+                const today = new Date();
+                const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+                
+                document.getElementById('dateFrom').value = oneWeekAgo.toISOString().split('T')[0];
+                document.getElementById('dateTo').value = today.toISOString().split('T')[0];
+            }
+
+            calculateItemTotal(element) {
+                const row = element.closest('.item-row');
+                const select = row.querySelector('.item-select');
+                const qtyInput = row.querySelector('.item-qty');
+                const priceInput = row.querySelector('.item-price');
+                const totalInput = row.querySelector('.item-total');
+
+                if (select.value && qtyInput.value) {
+                    const selectedOption = select.selectedOptions[0];
+                    if (selectedOption && selectedOption.dataset.price && !priceInput.value) {
+                        priceInput.value = selectedOption.dataset.price;
+                    }
+                }
+
+                const qty = parseInt(qtyInput.value) || 0;
+                const price = parseInt(priceInput.value) || 0;
+                const total = qty * price;
+
+                totalInput.value = total;
+                this.updateTotalAmount();
+            }
+
+            updateTotalAmount() {
+                const totalInputs = document.querySelectorAll('.item-total');
+                let totalAmount = 0;
+                
+                totalInputs.forEach(input => {
+                    totalAmount += parseInt(input.value) || 0;
+                });
+
+                document.getElementById('totalAmount').textContent = `₩${totalAmount.toLocaleString()}`;
+            }
+
+            addOrderItem() {
+                const container = document.getElementById('orderItemsList');
+                const newRow = document.createElement('div');
+                newRow.className = 'item-row';
+                newRow.innerHTML = `
+                    <select class="item-select" required>
+                        <option value="">상품을 선택하세요</option>
+                    </select>
+                    <input type="number" placeholder="수량" min="1" class="item-qty" required>
+                    <input type="number" placeholder="단가" class="item-price" required>
+                    <input type="number" placeholder="총액" class="item-total" readonly>
+                    <button type="button" class="btn btn-danger" onclick="removeItem(this)" style="padding:5px;">-</button>
+                `;
+                container.appendChild(newRow);
+                this.loadItemsToSelect();
+            }
+
+            updateStats() {
+                const orders = this.dataManager.getData('orders') || [];
+                const today = new Date().toISOString().split('T')[0];
+                
+                const pending = orders.filter(o => ['pending', 'paid'].includes(o.status)).length;
+                const processing = orders.filter(o => ['preparing', 'shipping'].includes(o.status)).length;
+                const completed = orders.filter(o => o.status === 'delivered').length;
+                
+                const todayOrders = orders.filter(o => o.orderDate.split('T')[0] === today);
+                const todaySales = todayOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+                
+                const avgOrder = orders.length > 0 ? orders.reduce((sum, o) => sum + o.totalAmount, 0) / orders.length : 0;
+
+                document.getElementById('pendingOrders').textContent = pending;
+                document.getElementById('processingOrders').textContent = processing;
+                document.getElementById('completedOrders').textContent = completed;
+                document.getElementById('todaySales').textContent = `₩${todaySales.toLocaleString()}`;
+                document.getElementById('avgOrderValue').textContent = `₩${Math.round(avgOrder).toLocaleString()}`;
+            }
+
+            getStatusBadge(status) {
+                const badges = {
+                    pending: '<span class="status-badge" style="background:#f39c12;color:white">주문접수</span>',
+                    paid: '<span class="status-badge" style="background:#3498db;color:white">결제완료</span>',
+                    preparing: '<span class="status-badge" style="background:#9b59b6;color:white">상품준비</span>',
+                    shipping: '<span class="status-badge" style="background:#e67e22;color:white">배송중</span>',
+                    delivered: '<span class="status-badge" style="background:#27ae60;color:white">배송완료</span>',
+                    cancelled: '<span class="status-badge" style="background:#e74c3c;color:white">주문취소</span>'
+                };
+                return badges[status] || badges.pending;
+            }
+
+            renderOrders() {
+                const orders = this.dataManager.getData('orders') || [];
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                const statusFilter = document.getElementById('statusFilter').value;
+                const dateFrom = document.getElementById('dateFrom').value;
+                const dateTo = document.getElementById('dateTo').value;
+
+                let filtered = orders.filter(order => {
+                    const matchesSearch = order.orderId.toLowerCase().includes(searchTerm) ||
+                                        order.customerName.toLowerCase().includes(searchTerm);
+                    const matchesStatus = !statusFilter || order.status === statusFilter;
+                    
+                    let matchesDate = true;
+                    if (dateFrom || dateTo) {
+                        const orderDate = order.orderDate.split('T')[0];
+                        if (dateFrom && orderDate < dateFrom) matchesDate = false;
+                        if (dateTo && orderDate > dateTo) matchesDate = false;
+                    }
+
+                    const matchesTab = this.currentTab === 'all' || 
+                                     (this.currentTab === 'pending' && ['pending', 'paid'].includes(order.status)) ||
+                                     (this.currentTab === 'processing' && ['preparing'].includes(order.status)) ||
+                                     (this.currentTab === 'shipping' && ['shipping'].includes(order.status)) ||
+                                     (this.currentTab === 'completed' && ['delivered'].includes(order.status));
+
+                    return matchesSearch && matchesStatus && matchesDate && matchesTab;
+                });
+
+                // 최신 주문 순으로 정렬
+                filtered.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
+
+                const tbody = document.getElementById('ordersTableBody');
+                tbody.innerHTML = filtered.map(order => `
+                    <tr>
+                        <td><strong>${order.orderId}</strong></td>
+                        <td>${new Date(order.orderDate).toLocaleString('ko-KR')}</td>
+                        <td>${order.customerName}<br><small>${order.customerPhone}</small></td>
+                        <td>${order.items.length}개</td>
+                        <td><strong>₩${order.totalAmount.toLocaleString()}</strong></td>
+                        <td>${this.getPaymentMethodText(order.paymentMethod)}</td>
+                        <td>${this.getStatusBadge(order.status)}</td>
+                        <td><small>${order.shippingAddress}</small></td>
+                        <td>
+                            <button class="btn btn-primary" style="padding:5px 8px;font-size:11px;margin:2px;" 
+                                    onclick="orderSystem.viewOrder('${order.orderId}')">상세</button>
+                            <button class="btn btn-warning" style="padding:5px 8px;font-size:11px;margin:2px;" 
+                                    onclick="orderSystem.updateStatus('${order.orderId}')">상태변경</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            getPaymentMethodText(method) {
+                const methods = {
+                    card: '신용카드',
+                    bank: '계좌이체',
+                    cash: '현금',
+                    point: '포인트'
+                };
+                return methods[method] || method;
+            }
+
+            switchTab(tab) {
+                this.currentTab = tab;
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+                this.renderOrders();
+            }
+
+            saveOrder() {
+                const orderData = {
+                    orderId: this.generateOrderId(),
+                    orderDate: new Date().toISOString(),
+                    customerName: document.getElementById('customerName').value,
+                    customerPhone: document.getElementById('customerPhone').value,
+                    customerEmail: document.getElementById('customerEmail').value,
+                    shippingAddress: document.getElementById('shippingAddress').value,
+                    paymentMethod: document.getElementById('paymentMethod').value,
+                    status: 'pending',
+                    items: this.collectOrderItems(),
+                    totalAmount: this.calculateTotalAmount(),
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+
+                const orders = this.dataManager.getData('orders') || [];
+                orders.unshift(orderData); // 최신 주문을 앞에 추가
+                this.dataManager.setData('orders', orders);
+
+                this.updateStats();
+                this.renderOrders();
+                this.closeOrderModal();
+                this.showNotification('새 주문이 생성되었습니다.', 'success');
+            }
+
+            collectOrderItems() {
+                const rows = document.querySelectorAll('.item-row');
+                const items = [];
+
+                rows.forEach(row => {
+                    const select = row.querySelector('.item-select');
+                    const qty = row.querySelector('.item-qty').value;
+                    const price = row.querySelector('.item-price').value;
+
+                    if (select.value && qty && price) {
+                        const selectedOption = select.selectedOptions[0];
+                        items.push({
+                            itemCode: select.value,
+                            itemName: selectedOption.textContent.split(' - ')[0],
+                            quantity: parseInt(qty),
+                            unitPrice: parseInt(price),
+                            totalPrice: parseInt(qty) * parseInt(price)
+                        });
+                    }
+                });
+
+                return items;
+            }
+
+            calculateTotalAmount() {
+                const items = this.collectOrderItems();
+                return items.reduce((sum, item) => sum + item.totalPrice, 0);
+            }
+
+            generateOrderId() {
+                const orders = this.dataManager.getData('orders') || [];
+                const maxId = orders.length > 0 ? 
+                    Math.max(...orders.map(o => parseInt(o.orderId.replace('ORD', '')))) : 0;
+                return `ORD${String(maxId + 1).padStart(6, '0')}`;
+            }
+
+            viewOrder(orderId) {
+                const orders = this.dataManager.getData('orders') || [];
+                const order = orders.find(o => o.orderId === orderId);
+                if (order) {
+                    alert(`주문 상세:\n주문번호: ${order.orderId}\n고객: ${order.customerName}\n금액: ₩${order.totalAmount.toLocaleString()}\n상태: ${order.status}`);
+                }
+            }
+
+            updateStatus(orderId) {
+                const newStatus = prompt('새 상태를 입력하세요:\npending(주문접수), paid(결제완료), preparing(상품준비), shipping(배송중), delivered(배송완료), cancelled(주문취소)');
+                if (newStatus && ['pending', 'paid', 'preparing', 'shipping', 'delivered', 'cancelled'].includes(newStatus)) {
+                    const orders = this.dataManager.getData('orders') || [];
+                    const orderIndex = orders.findIndex(o => o.orderId === orderId);
+                    if (orderIndex !== -1) {
+                        orders[orderIndex].status = newStatus;
+                        orders[orderIndex].updatedAt = new Date().toISOString();
+                        this.dataManager.setData('orders', orders);
+                        this.updateStats();
+                        this.renderOrders();
+                        this.showNotification('주문 상태가 업데이트되었습니다.', 'success');
+                    }
+                }
+            }
+
+            openOrderModal() {
+                document.getElementById('orderModal').style.display = 'block';
+                document.getElementById('orderForm').reset();
+                this.updateTotalAmount();
+            }
+
+            closeOrderModal() {
+                document.getElementById('orderModal').style.display = 'none';
+            }
+
+            refreshOrders() {
+                this.updateStats();
+                this.renderOrders();
+                this.showNotification('주문 목록이 새로고침되었습니다.', 'info');
+            }
+
+            exportOrders() {
+                const orders = this.dataManager.getData('orders') || [];
+                const report = {
+                    generatedAt: new Date().toISOString(),
+                    summary: {
+                        totalOrders: orders.length,
+                        totalSales: orders.reduce((sum, o) => sum + o.totalAmount, 0),
+                        averageOrderValue: orders.length > 0 ? orders.reduce((sum, o) => sum + o.totalAmount, 0) / orders.length : 0
+                    },
+                    orders: orders
+                };
+                
+                this.downloadJson(report, '주문현황보고서.json');
+                this.showNotification('주문 리포트가 생성되었습니다.', 'success');
+            }
+
+            downloadJson(data, filename) {
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            showNotification(message, type) {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = `notification ${type}`;
+                notification.style.display = 'block';
+                
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // 전역 함수들
+        function switchTab(tab) {
+            orderSystem.switchTab(tab);
+        }
+
+        function openOrderModal() {
+            orderSystem.openOrderModal();
+        }
+
+        function closeOrderModal() {
+            orderSystem.closeOrderModal();
+        }
+
+        function addOrderItem() {
+            orderSystem.addOrderItem();
+        }
+
+        function removeItem(button) {
+            const row = button.closest('.item-row');
+            row.remove();
+            orderSystem.updateTotalAmount();
+        }
+
+        function refreshOrders() {
+            orderSystem.refreshOrders();
+        }
+
+        function exportOrders() {
+            orderSystem.exportOrders();
+        }
+
+        // 전역 변수
+        let orderSystem;
+
+        // DOM 로드 후 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            orderSystem = new OrderManagementSystem();
+        });
+
+        // 모달 외부 클릭 시 닫기
+        window.onclick = function(event) {
+            const modal = document.getElementById('orderModal');
+            if (event.target === modal) {
+                closeOrderModal();
+            }
+        }
+    </script>
+</body>
+</html>

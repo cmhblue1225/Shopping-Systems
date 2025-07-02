@@ -73,6 +73,51 @@
             background: rgba(46, 204, 113, 0.8);
         }
 
+        /* 핵심 지표 대시보드 */
+        .kpi-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .kpi-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .kpi-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+        }
+
+        .kpi-change {
+            font-size: 11px;
+            margin-top: 5px;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+
+        .positive { background: #d5f4e6; color: #27ae60; }
+        .negative { background: #fadbd8; color: #e74c3c; }
+        .neutral { background: #ebf3fd; color: #3498db; }
+
         /* 통계 카드 */
         .stats-grid {
             display: grid;
@@ -391,6 +436,35 @@
             </div>
         </div>
 
+        <!-- 핵심 지표 대시보드 -->
+        <div class="kpi-dashboard">
+            <div class="kpi-card">
+                <div class="kpi-value" id="totalSales" style="color: #27ae60;">₩0</div>
+                <div class="kpi-label">총 매출</div>
+                <div class="kpi-change positive" id="salesChange">+0%</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value" id="totalOrders" style="color: #3498db;">0</div>
+                <div class="kpi-label">총 주문</div>
+                <div class="kpi-change neutral" id="ordersChange">+0</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value" id="activeCustomers" style="color: #8e44ad;">0</div>
+                <div class="kpi-label">활성 고객</div>
+                <div class="kpi-change positive" id="customersChange">+0</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value" id="lowStockItems" style="color: #e74c3c;">0</div>
+                <div class="kpi-label">위험 재고</div>
+                <div class="kpi-change negative" id="stockChange">주의</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value" id="pendingOrders" style="color: #f39c12;">0</div>
+                <div class="kpi-label">대기 주문</div>
+                <div class="kpi-change neutral" id="pendingChange">처리필요</div>
+            </div>
+        </div>
+
         <!-- 통계 요약 -->
         <div class="stats-grid" id="statsGrid">
             <div class="loading">
@@ -441,6 +515,7 @@
     <script src="core/realtime-sync.js"></script>
     <script src="core/workflow-engine.js"></script>
     <script src="core/search-engine.js"></script>
+    <script src="core/ux-enhancer.js"></script>
     <script src="js/dashboard.js"></script>
 </body>
 </html>
